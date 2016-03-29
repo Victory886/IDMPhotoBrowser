@@ -49,7 +49,7 @@
 
 //@property (nonatomic, weak) UIImage *scaleImage;
 
-@property (nonatomic) BOOL arrowButtonsChangePhotosAnimated;
+//@property (nonatomic) BOOL arrowButtonsChangePhotosAnimated;
 
 @property (nonatomic) BOOL forceHideStatusBar;
 @property (nonatomic) BOOL usePopAnimation;

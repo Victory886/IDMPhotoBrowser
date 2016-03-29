@@ -218,7 +218,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         _useWhiteBackgroundColor = NO;
 //        _leftArrowImage = _rightArrowImage = _leftArrowSelectedImage = _rightArrowSelectedImage = nil;
 
-        _arrowButtonsChangePhotosAnimated = YES;
+//        _arrowButtonsChangePhotosAnimated = YES;
 
         _backgroundScaleFactor = 1.0;
         _animationDuration = 0.28;
@@ -1229,7 +1229,8 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         [self didStartViewingPageAtIndex:index];
 
 //        if(_arrowButtonsChangePhotosAnimated) [self updateToolbar];
-        if(_arrowButtonsChangePhotosAnimated) [self updatePageControl];
+//        if(_arrowButtonsChangePhotosAnimated) [self updatePageControl];
+        [self updatePageControl];
     }
 }
 
@@ -1241,13 +1242,13 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
 	// Update toolbar when page changes
 //	if(! _arrowButtonsChangePhotosAnimated) [self updateToolbar];
-    if(! _arrowButtonsChangePhotosAnimated) [self updatePageControl];
+//    if(! _arrowButtonsChangePhotosAnimated) [self updatePageControl];
 }
 
 #pragma mark - PageControl
 - (void)updatePageControl {
-    _pageControl.currentPage = _currentPageIndex;
     _pageControl.numberOfPages = [self numberOfPhotos];
+    _pageControl.currentPage = _currentPageIndex;
 }
 
 //#pragma mark - Toolbar
@@ -1269,17 +1270,17 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     // Change page
 	if (index < [self numberOfPhotos]) {
 		CGRect pageFrame = [self frameForPageAtIndex:index];
-
-		if(_arrowButtonsChangePhotosAnimated)
-        {
-            [_pagingScrollView setContentOffset:CGPointMake(pageFrame.origin.x - PADDING, 0) animated:YES];
-        }
-        else
-        {
-            _pagingScrollView.contentOffset = CGPointMake(pageFrame.origin.x - PADDING, 0);
-//            [self updateToolbar];
-            [self updatePageControl];
-        }
+        [_pagingScrollView setContentOffset:CGPointMake(pageFrame.origin.x - PADDING, 0) animated:YES];
+        [self updatePageControl];
+//		if(_arrowButtonsChangePhotosAnimated)
+//        {
+//            [_pagingScrollView setContentOffset:CGPointMake(pageFrame.origin.x - PADDING, 0) animated:YES];
+//        }
+//        else
+//        {
+//            _pagingScrollView.contentOffset = CGPointMake(pageFrame.origin.x - PADDING, 0);
+////            [self updateToolbar];
+//        }
 	}
 
 	// Update timer to give more time

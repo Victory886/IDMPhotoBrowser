@@ -114,6 +114,7 @@
 //    IDMPhotoBrowser *browser = [[IDMPhotoBrowser alloc] initWithPhotos:photos animatedFromView:sender]; // using initWithPhotos:animatedFromView: method to use the zoom-in animation
     IDMPhotoBrowser *browser = [[IDMPhotoBrowser alloc] initWithPhotos:photos];
     browser.delegate = self;
+    [browser setInitialPageIndex:2];
 //    browser.displayActionButton = NO;
 //    browser.displayArrowButton = YES;
 //    browser.displayCounterLabel = YES;
