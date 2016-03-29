@@ -61,4 +61,7 @@
 // Return nil if there is no placeholder
 - (UIImage *)placeholderImage;
 
+// placeholder view
+- (UIView *)placeholderView;
+
 @end

@@ -118,7 +118,23 @@ caption = _caption;
 	return self;
 }
 
+#pragma mark - Private methods
+- (UIImage *)imageFromPlaceholderView {
+    UIGraphicsBeginImageContextWithOptions(_placeholderView.bounds.size, YES, [UIScreen mainScreen].scale);
+    [_placeholderView.layer renderInContext:UIGraphicsGetCurrentContext()];
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return image;
+}
+
 #pragma mark IDMPhoto Protocol Methods
+
+- (UIImage *)placeholderImage {
+    if (!_placeholderImage) {
+        return [self imageFromPlaceholderView];
+    }
+    return _placeholderImage;
+}
 
 - (UIImage *)underlyingImage {
     return _underlyingImage;

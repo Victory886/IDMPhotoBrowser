@@ -7,44 +7,55 @@
 //
 
 #import "IDMZoomingScrollView.h"
-#import "IDMPhotoBrowser.h"
+//#import "IDMPhotoBrowser.h"
+#import "IDMCaptionView.h"
 #import "IDMPhoto.h"
 
-// Declare private methods of browser
-@interface IDMPhotoBrowser ()
-- (UIImage *)imageForPhoto:(id<IDMPhoto>)photo;
-- (void)cancelControlHiding;
-- (void)hideControlsAfterDelay;
-- (void)toggleControls;
-@end
+//// Declare private methods of browser
+//@interface IDMPhotoBrowser ()
+//- (UIImage *)imageForPhoto:(id<IDMPhoto>)photo;
+//- (void)cancelControlHiding;
+//- (void)hideControlsAfterDelay;
+//- (void)toggleControls;
+//@end
 
 // Private methods and properties
 @interface IDMZoomingScrollView ()
-@property (nonatomic, weak) IDMPhotoBrowser *photoBrowser;
+//@property (nonatomic, weak) IDMPhotoBrowser *photoBrowser;
+@property (nonatomic, weak) id<IDMZoomingScrollViewDelegate> photoDelegate;
+@property (nonatomic, strong) UILongPressGestureRecognizer *longPress;
 - (void)handleSingleTap:(CGPoint)touchPoint;
 - (void)handleDoubleTap:(CGPoint)touchPoint;
 @end
 
 @implementation IDMZoomingScrollView
 
-@synthesize photoImageView = _photoImageView, photoBrowser = _photoBrowser, photo = _photo, captionView = _captionView;
+//@synthesize photoImageView = _photoImageView, photoBrowser = _photoBrowser, photo = _photo, captionView = _captionView;
+@synthesize photoImageView = _photoImageView, photo = _photo, captionView = _captionView;
 
-- (id)initWithPhotoBrowser:(IDMPhotoBrowser *)browser {
+//- (id)initWithPhotoBrowser:(IDMPhotoBrowser *)browser {
+- (id)initWithPhotoDelegate:(id<IDMZoomingScrollViewDelegate>)photoDelegate {
     if ((self = [super init])) {
         // Delegate
-        self.photoBrowser = browser;
+//        self.photoBrowser = browser;
+        self.photoDelegate = photoDelegate;
+        
+        // Long press
+        _longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPress:)];
         
 		// Tap view for background
 		_tapView = [[IDMTapDetectingView alloc] initWithFrame:self.bounds];
 		_tapView.tapDelegate = self;
 		_tapView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 		_tapView.backgroundColor = [UIColor clearColor];
+        [_tapView addGestureRecognizer:_longPress];
 		[self addSubview:_tapView];
         
 		// Image view
 		_photoImageView = [[IDMTapDetectingImageView alloc] initWithFrame:CGRectZero];
 		_photoImageView.tapDelegate = self;
 		_photoImageView.backgroundColor = [UIColor clearColor];
+        [_photoImageView addGestureRecognizer:_longPress];
 		[self addSubview:_photoImageView];
         
         CGRect screenBound = [[UIScreen mainScreen] bounds];
@@ -63,8 +74,10 @@
         _progressView.tag = 101;
         _progressView.thicknessRatio = 0.1;
         _progressView.roundedCorners = NO;
-        _progressView.trackTintColor    = browser.trackTintColor    ? self.photoBrowser.trackTintColor    : [UIColor colorWithWhite:0.2 alpha:1];
-        _progressView.progressTintColor = browser.progressTintColor ? self.photoBrowser.progressTintColor : [UIColor colorWithWhite:1.0 alpha:1];
+//        _progressView.trackTintColor    = browser.trackTintColor    ? self.photoBrowser.trackTintColor    : [UIColor colorWithWhite:0.2 alpha:1];
+//        _progressView.progressTintColor = browser.progressTintColor ? self.photoBrowser.progressTintColor : [UIColor colorWithWhite:1.0 alpha:1];
+        _progressView.trackTintColor    = [_photoDelegate trackTintColorForZoomingScrollView:self]    ? [_photoDelegate trackTintColorForZoomingScrollView:self] : [UIColor colorWithWhite:0.2 alpha:1];
+        _progressView.progressTintColor = [_photoDelegate progressTintColorForZoomingScrollView:self] ? [_photoDelegate progressTintColorForZoomingScrollView:self] : [UIColor colorWithWhite:1.0 alpha:1];
         [self addSubview:_progressView];
         
 		// Setup
@@ -93,6 +106,11 @@
     self.captionView = nil;
 }
 
+#pragma mark - Long press
+- (void)longPress:(UILongPressGestureRecognizer *)gestureRecognizer {
+    [self.photoDelegate handleLongTapInZoomingScrollView:self];
+}
+
 #pragma mark - Image
 
 // Get and display image
@@ -106,7 +124,8 @@
 		self.contentSize = CGSizeMake(0, 0);
 		
 		// Get image from browser as it handles ordering of fetching
-		UIImage *img = [self.photoBrowser imageForPhoto:_photo];
+//		UIImage *img = [self.photoBrowser imageForPhoto:_photo];
+        UIImage *img = [self.photoDelegate imageForPhoto:_photo zoomingScrollView:self];
 		if (img) {
             // Hide ProgressView
             //_progressView.alpha = 0.0f;
@@ -242,15 +261,15 @@
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
-	[_photoBrowser cancelControlHiding];
+//	[_photoBrowser cancelControlHiding];
 }
 
 - (void)scrollViewWillBeginZooming:(UIScrollView *)scrollView withView:(UIView *)view {
-	[_photoBrowser cancelControlHiding];
+//	[_photoBrowser cancelControlHiding];
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
-	[_photoBrowser hideControlsAfterDelay];
+//	[_photoBrowser hideControlsAfterDelay];
 }
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView {
@@ -261,29 +280,30 @@
 #pragma mark - Tap Detection
 
 - (void)handleSingleTap:(CGPoint)touchPoint {
-	[_photoBrowser performSelector:@selector(toggleControls) withObject:nil afterDelay:0.2];
+//	[_photoBrowser performSelector:@selector(toggleControls) withObject:nil afterDelay:0.2];
+    [self.photoDelegate handleSingleTap:touchPoint zoomingScrollView:self];
 }
 
 - (void)handleDoubleTap:(CGPoint)touchPoint {
-	
-	// Cancel any single tap handling
-	[NSObject cancelPreviousPerformRequestsWithTarget:_photoBrowser];
-	
-	// Zoom
-	if (self.zoomScale == self.maximumZoomScale) {
-		
-		// Zoom out
-		[self setZoomScale:self.minimumZoomScale animated:YES];
-		
-	} else {
-		
-		// Zoom in
-		[self zoomToRect:CGRectMake(touchPoint.x, touchPoint.y, 1, 1) animated:YES];
-		
-	}
-	
-	// Delay controls
-	[_photoBrowser hideControlsAfterDelay];
+    [self.photoDelegate handleDoubleTap:touchPoint zoomingScrollView:self];
+//	// Cancel any single tap handling
+//	[NSObject cancelPreviousPerformRequestsWithTarget:_photoBrowser];
+//	
+//	// Zoom
+//	if (self.zoomScale == self.maximumZoomScale) {
+//		
+//		// Zoom out
+//		[self setZoomScale:self.minimumZoomScale animated:YES];
+//		
+//	} else {
+//		
+//		// Zoom in
+//		[self zoomToRect:CGRectMake(touchPoint.x, touchPoint.y, 1, 1) animated:YES];
+//		
+//	}
+//	
+//	// Delay controls
+//	[_photoBrowser hideControlsAfterDelay];
 }
 
 // Image View

@@ -85,11 +85,14 @@
     {
         photo = [IDMPhoto photoWithFilePath:[[NSBundle mainBundle] pathForResource:@"photo1l" ofType:@"jpg"]];
         photo.caption = @"Grotto of the Madonna";
+        photo.placeholderImage = [UIImage imageNamed:@"photo1m.jpg"];
+        photo.placeholderView = buttonSender.imageView;
         [photos addObject:photo];
     }
     
     photo = [IDMPhoto photoWithFilePath:[[NSBundle mainBundle] pathForResource:@"photo3l" ofType:@"jpg"]];
     photo.caption = @"York Floods";
+    photo.placeholderView = sender;
     [photos addObject:photo];
     
     photo = [IDMPhoto photoWithFilePath:[[NSBundle mainBundle] pathForResource:@"photo2l" ofType:@"jpg"]];
@@ -108,13 +111,14 @@
     }
     
     // Create and setup browser
-    IDMPhotoBrowser *browser = [[IDMPhotoBrowser alloc] initWithPhotos:photos animatedFromView:sender]; // using initWithPhotos:animatedFromView: method to use the zoom-in animation
+//    IDMPhotoBrowser *browser = [[IDMPhotoBrowser alloc] initWithPhotos:photos animatedFromView:sender]; // using initWithPhotos:animatedFromView: method to use the zoom-in animation
+    IDMPhotoBrowser *browser = [[IDMPhotoBrowser alloc] initWithPhotos:photos];
     browser.delegate = self;
-    browser.displayActionButton = NO;
-    browser.displayArrowButton = YES;
-    browser.displayCounterLabel = YES;
-    browser.usePopAnimation = YES;
-    browser.scaleImage = buttonSender.currentImage;
+//    browser.displayActionButton = NO;
+//    browser.displayArrowButton = YES;
+//    browser.displayCounterLabel = YES;
+//    browser.usePopAnimation = YES;
+//    browser.scaleImage = buttonSender.currentImage;
     if(buttonSender.tag == 102) browser.useWhiteBackgroundColor = YES;
     
     // Show
@@ -229,19 +233,19 @@
     {
         if(indexPath.row == 1) // Photos from Flickr
         {
-            browser.displayCounterLabel = YES;
-            browser.displayActionButton = NO;
+//            browser.displayCounterLabel = YES;
+//            browser.displayActionButton = NO;
         }
         else if(indexPath.row == 2) // Photos from Flickr - Custom
         {
             browser.actionButtonTitles      = @[@"Option 1", @"Option 2", @"Option 3", @"Option 4"];
-            browser.displayCounterLabel     = YES;
-            browser.useWhiteBackgroundColor = YES;
-            browser.leftArrowImage          = [UIImage imageNamed:@"IDMPhotoBrowser_customArrowLeft.png"];
-            browser.rightArrowImage         = [UIImage imageNamed:@"IDMPhotoBrowser_customArrowRight.png"];
-            browser.leftArrowSelectedImage  = [UIImage imageNamed:@"IDMPhotoBrowser_customArrowLeftSelected.png"];
-            browser.rightArrowSelectedImage = [UIImage imageNamed:@"IDMPhotoBrowser_customArrowRightSelected.png"];
-            browser.doneButtonImage         = [UIImage imageNamed:@"IDMPhotoBrowser_customDoneButton.png"];
+//            browser.displayCounterLabel     = YES;
+//            browser.useWhiteBackgroundColor = YES;
+//            browser.leftArrowImage          = [UIImage imageNamed:@"IDMPhotoBrowser_customArrowLeft.png"];
+//            browser.rightArrowImage         = [UIImage imageNamed:@"IDMPhotoBrowser_customArrowRight.png"];
+//            browser.leftArrowSelectedImage  = [UIImage imageNamed:@"IDMPhotoBrowser_customArrowLeftSelected.png"];
+//            browser.rightArrowSelectedImage = [UIImage imageNamed:@"IDMPhotoBrowser_customArrowRightSelected.png"];
+//            browser.doneButtonImage         = [UIImage imageNamed:@"IDMPhotoBrowser_customDoneButton.png"];
             browser.view.tintColor          = [UIColor orangeColor];
             browser.progressTintColor       = [UIColor orangeColor];
             browser.trackTintColor          = [UIColor colorWithWhite:0.8 alpha:1];

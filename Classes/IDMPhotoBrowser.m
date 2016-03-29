@@ -18,29 +18,32 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 #endif
 
 // Private
-@interface IDMPhotoBrowser () {
+@interface IDMPhotoBrowser () <IDMZoomingScrollViewDelegate> {
 	// Data
     NSMutableArray *_photos;
 
 	// Views
 	UIScrollView *_pagingScrollView;
 
-    // Gesture
-    UIPanGestureRecognizer *_panGesture;
+//    // Gesture
+//    UIPanGestureRecognizer *_panGesture;
 
 	// Paging
     NSMutableSet *_visiblePages, *_recycledPages;
     NSUInteger _pageIndexBeforeRotation;
     NSUInteger _currentPageIndex;
+    
+    //
+    UIPageControl *_pageControl;
 
-    // Buttons
-    UIButton *_doneButton;
-
-	// Toolbar
-	UIToolbar *_toolbar;
-	UIBarButtonItem *_previousButton, *_nextButton, *_actionButton;
-    UIBarButtonItem *_counterButton;
-    UILabel *_counterLabel;
+//    // Buttons
+//    UIButton *_doneButton;
+//
+//	// Toolbar
+//	UIToolbar *_toolbar;
+//	UIBarButtonItem *_previousButton, *_nextButton, *_actionButton;
+//    UIBarButtonItem *_counterButton;
+//    UILabel *_counterLabel;
 
     // Actions
     UIActionSheet *_actionsSheet;
@@ -53,8 +56,8 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     //UIStatusBarStyle _previousStatusBarStyle;
 	BOOL _statusBarOriginallyHidden;
 
-    // Present
-    UIView *_senderViewForAnimation;
+//    // Present
+//    UIView *_senderViewForAnimation;
 
     // Misc
     BOOL _performingLayout;
@@ -65,7 +68,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
     BOOL _isdraggingPhoto;
 
-    CGRect _senderViewOriginalFrame;
+//    CGRect _senderViewOriginalFrame;
     //UIImage *_backgroundScreenshot;
 
     UIWindow *_applicationWindow;
@@ -98,24 +101,24 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 - (CGRect)frameForPageAtIndex:(NSUInteger)index;
 - (CGSize)contentSizeForPagingScrollView;
 - (CGPoint)contentOffsetForPageAtIndex:(NSUInteger)index;
-- (CGRect)frameForToolbarAtOrientation:(UIInterfaceOrientation)orientation;
-- (CGRect)frameForDoneButtonAtOrientation:(UIInterfaceOrientation)orientation;
+//- (CGRect)frameForToolbarAtOrientation:(UIInterfaceOrientation)orientation;
+//- (CGRect)frameForDoneButtonAtOrientation:(UIInterfaceOrientation)orientation;
 - (CGRect)frameForCaptionView:(IDMCaptionView *)captionView atIndex:(NSUInteger)index;
 
-// Toolbar
-- (void)updateToolbar;
+//// Toolbar
+//- (void)updateToolbar;
 
 // Navigation
 - (void)jumpToPageAtIndex:(NSUInteger)index;
 - (void)gotoPreviousPage;
 - (void)gotoNextPage;
 
-// Controls
-- (void)cancelControlHiding;
-- (void)hideControlsAfterDelay;
-- (void)setControlsHidden:(BOOL)hidden animated:(BOOL)animated permanent:(BOOL)permanent;
-- (void)toggleControls;
-- (BOOL)areControlsHidden;
+//// Controls
+//- (void)cancelControlHiding;
+//- (void)hideControlsAfterDelay;
+//- (void)setControlsHidden:(BOOL)hidden animated:(BOOL)animated permanent:(BOOL)permanent;
+//- (void)toggleControls;
+//- (BOOL)areControlsHidden;
 
 // Data
 - (NSUInteger)numberOfPhotos;
@@ -130,16 +133,58 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 @implementation IDMPhotoBrowser
 
 // Properties
-@synthesize displayDoneButton = _displayDoneButton, displayToolbar = _displayToolbar, displayActionButton = _displayActionButton, displayCounterLabel = _displayCounterLabel, useWhiteBackgroundColor = _useWhiteBackgroundColor, doneButtonImage = _doneButtonImage;
-@synthesize leftArrowImage = _leftArrowImage, rightArrowImage = _rightArrowImage, leftArrowSelectedImage = _leftArrowSelectedImage, rightArrowSelectedImage = _rightArrowSelectedImage;
-@synthesize displayArrowButton = _displayArrowButton, actionButtonTitles = _actionButtonTitles;
-@synthesize arrowButtonsChangePhotosAnimated = _arrowButtonsChangePhotosAnimated;
+//@synthesize displayDoneButton = _displayDoneButton, displayToolbar = _displayToolbar, displayActionButton = _displayActionButton, displayCounterLabel = _displayCounterLabel, useWhiteBackgroundColor = _useWhiteBackgroundColor, doneButtonImage = _doneButtonImage;
+//@synthesize leftArrowImage = _leftArrowImage, rightArrowImage = _rightArrowImage, leftArrowSelectedImage = _leftArrowSelectedImage, rightArrowSelectedImage = _rightArrowSelectedImage;
+//@synthesize displayArrowButton = _displayArrowButton, actionButtonTitles = _actionButtonTitles;
+//@synthesize arrowButtonsChangePhotosAnimated = _arrowButtonsChangePhotosAnimated;
 @synthesize forceHideStatusBar = _forceHideStatusBar;
 @synthesize usePopAnimation = _usePopAnimation;
-@synthesize disableVerticalSwipe = _disableVerticalSwipe;
+//@synthesize disableVerticalSwipe = _disableVerticalSwipe;
 @synthesize actionsSheet = _actionsSheet, activityViewController = _activityViewController;
 @synthesize trackTintColor = _trackTintColor, progressTintColor = _progressTintColor;
 @synthesize delegate = _delegate;
+
+#pragma mark - IDMZoomingScrollViewDelegate
+- (UIImage *)imageForPhoto:(id<IDMPhoto>)photo zoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView {
+    return [self imageForPhoto:photo];
+}
+
+- (UIColor *)trackTintColorForZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView {
+    return self.trackTintColor;
+}
+
+- (UIColor *)progressTintColorForZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView {
+    return self.progressTintColor;
+}
+
+- (void)handleSingleTap:(CGPoint)touchPoint zoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView {
+    [self performCloseAnimationWithScrollView:zoomingScrollView];
+}
+
+- (void)handleDoubleTap:(CGPoint)touchPoint zoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView {
+    // Cancel any single tap handling
+    [NSObject cancelPreviousPerformRequestsWithTarget:self];
+    
+    // Zoom
+    if (zoomingScrollView.zoomScale == zoomingScrollView.maximumZoomScale) {
+        
+        // Zoom out
+        [zoomingScrollView setZoomScale:zoomingScrollView.minimumZoomScale animated:YES];
+        
+    } else {
+        
+        // Zoom in
+        [zoomingScrollView zoomToRect:CGRectMake(touchPoint.x, touchPoint.y, 1, 1) animated:YES];
+        
+    }
+    
+    // Delay controls
+//    [self hideControlsAfterDelay];
+}
+
+- (void)handleLongTapInZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView {
+    [self actionButtonPressed:nil];
+}
 
 #pragma mark - NSObject
 
@@ -158,27 +203,27 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         _initalPageIndex = 0;
         _autoHide = YES;
 
-        _displayDoneButton = YES;
-        _doneButtonImage = nil;
-
-        _displayToolbar = YES;
-        _displayActionButton = YES;
-        _displayArrowButton = YES;
-        _displayCounterLabel = NO;
+//        _displayDoneButton = YES;
+//        _doneButtonImage = nil;
+//
+//        _displayToolbar = YES;
+//        _displayActionButton = YES;
+//        _displayArrowButton = YES;
+//        _displayCounterLabel = NO;
 
         _forceHideStatusBar = NO;
         _usePopAnimation = NO;
-		_disableVerticalSwipe = NO;
+//		_disableVerticalSwipe = NO;
 
         _useWhiteBackgroundColor = NO;
-        _leftArrowImage = _rightArrowImage = _leftArrowSelectedImage = _rightArrowSelectedImage = nil;
+//        _leftArrowImage = _rightArrowImage = _leftArrowSelectedImage = _rightArrowSelectedImage = nil;
 
         _arrowButtonsChangePhotosAnimated = YES;
 
         _backgroundScaleFactor = 1.0;
         _animationDuration = 0.28;
-        _senderViewForAnimation = nil;
-        _scaleImage = nil;
+//        _senderViewForAnimation = nil;
+//        _scaleImage = nil;
 
         _isdraggingPhoto = NO;
 
@@ -220,13 +265,13 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 	return self;
 }
 
-- (id)initWithPhotos:(NSArray *)photosArray animatedFromView:(UIView*)view {
-    if ((self = [self init])) {
-		_photos = [[NSMutableArray alloc] initWithArray:photosArray];
-        _senderViewForAnimation = view;
-	}
-	return self;
-}
+//- (id)initWithPhotos:(NSArray *)photosArray animatedFromView:(UIView*)view {
+//    if ((self = [self init])) {
+//		_photos = [[NSMutableArray alloc] initWithArray:photosArray];
+//        _senderViewForAnimation = view;
+//	}
+//	return self;
+//}
 
 - (id)initWithPhotoURLs:(NSArray *)photoURLsArray {
     if ((self = [self init])) {
@@ -236,19 +281,21 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 	return self;
 }
 
-- (id)initWithPhotoURLs:(NSArray *)photoURLsArray animatedFromView:(UIView*)view {
-    if ((self = [self init])) {
-        NSArray *photosArray = [IDMPhoto photosWithURLs:photoURLsArray];
-		_photos = [[NSMutableArray alloc] initWithArray:photosArray];
-        _senderViewForAnimation = view;
-	}
-	return self;
-}
+//- (id)initWithPhotoURLs:(NSArray *)photoURLsArray animatedFromView:(UIView*)view {
+//    if ((self = [self init])) {
+//        NSArray *photosArray = [IDMPhoto photosWithURLs:photoURLsArray];
+//		_photos = [[NSMutableArray alloc] initWithArray:photosArray];
+//        _senderViewForAnimation = view;
+//	}
+//	return self;
+//}
 
 - (void)dealloc {
     _pagingScrollView.delegate = nil;
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [self releaseAllUnderlyingPhotos];
+    
+    IDMLog(@"%@, %@, %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd), [NSString stringWithFormat:@"%i", __LINE__]);
 }
 
 - (void)releaseAllUnderlyingPhotos {
@@ -264,96 +311,96 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     [super didReceiveMemoryWarning];
 }
 
-#pragma mark - Pan Gesture
-
-- (void)panGestureRecognized:(id)sender {
-    // Initial Setup
-    IDMZoomingScrollView *scrollView = [self pageDisplayedAtIndex:_currentPageIndex];
-    //IDMTapDetectingImageView *scrollView.photoImageView = scrollView.photoImageView;
-
-    static float firstX, firstY;
-
-    float viewHeight = scrollView.frame.size.height;
-    float viewHalfHeight = viewHeight/2;
-
-    CGPoint translatedPoint = [(UIPanGestureRecognizer*)sender translationInView:self.view];
-
-    // Gesture Began
-    if ([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateBegan) {
-        [self setControlsHidden:YES animated:YES permanent:YES];
-
-        firstX = [scrollView center].x;
-        firstY = [scrollView center].y;
-
-        _senderViewForAnimation.hidden = (_currentPageIndex == _initalPageIndex);
-
-        _isdraggingPhoto = YES;
-        [self setNeedsStatusBarAppearanceUpdate];
-    }
-
-    translatedPoint = CGPointMake(firstX, firstY+translatedPoint.y);
-    [scrollView setCenter:translatedPoint];
-
-    float newY = scrollView.center.y - viewHalfHeight;
-    float newAlpha = 1 - fabsf(newY)/viewHeight; //abs(newY)/viewHeight * 1.8;
-
-    self.view.opaque = YES;
-
-    self.view.backgroundColor = [UIColor colorWithWhite:(_useWhiteBackgroundColor ? 1 : 0) alpha:newAlpha];
-
-    // Gesture Ended
-    if ([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
-        if(scrollView.center.y > viewHalfHeight+40 || scrollView.center.y < viewHalfHeight-40) // Automatic Dismiss View
-        {
-            if (_senderViewForAnimation && _currentPageIndex == _initalPageIndex) {
-                [self performCloseAnimationWithScrollView:scrollView];
-                return;
-            }
-
-            CGFloat finalX = firstX, finalY;
-
-            CGFloat windowsHeigt = [_applicationWindow frame].size.height;
-
-            if(scrollView.center.y > viewHalfHeight+30) // swipe down
-                finalY = windowsHeigt*2;
-            else // swipe up
-                finalY = -viewHalfHeight;
-
-            CGFloat animationDuration = 0.35;
-
-            [UIView beginAnimations:nil context:NULL];
-            [UIView setAnimationDuration:animationDuration];
-            [UIView setAnimationCurve:UIViewAnimationCurveEaseIn];
-            [UIView setAnimationDelegate:self];
-            [scrollView setCenter:CGPointMake(finalX, finalY)];
-            self.view.backgroundColor = [UIColor colorWithWhite:0 alpha:0];
-            [UIView commitAnimations];
-
-            [self performSelector:@selector(doneButtonPressed:) withObject:self afterDelay:animationDuration];
-        }
-        else // Continue Showing View
-        {
-            _isdraggingPhoto = NO;
-            [self setNeedsStatusBarAppearanceUpdate];
-
-            self.view.backgroundColor = [UIColor colorWithWhite:(_useWhiteBackgroundColor ? 1 : 0) alpha:1];
-
-            CGFloat velocityY = (.35*[(UIPanGestureRecognizer*)sender velocityInView:self.view].y);
-
-            CGFloat finalX = firstX;
-            CGFloat finalY = viewHalfHeight;
-
-            CGFloat animationDuration = (ABS(velocityY)*.0002)+.2;
-
-            [UIView beginAnimations:nil context:NULL];
-            [UIView setAnimationDuration:animationDuration];
-            [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
-            [UIView setAnimationDelegate:self];
-            [scrollView setCenter:CGPointMake(finalX, finalY)];
-            [UIView commitAnimations];
-        }
-    }
-}
+//#pragma mark - Pan Gesture
+//
+//- (void)panGestureRecognized:(id)sender {
+//    // Initial Setup
+//    IDMZoomingScrollView *scrollView = [self pageDisplayedAtIndex:_currentPageIndex];
+//    //IDMTapDetectingImageView *scrollView.photoImageView = scrollView.photoImageView;
+//
+//    static float firstX, firstY;
+//
+//    float viewHeight = scrollView.frame.size.height;
+//    float viewHalfHeight = viewHeight/2;
+//
+//    CGPoint translatedPoint = [(UIPanGestureRecognizer*)sender translationInView:self.view];
+//
+//    // Gesture Began
+//    if ([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateBegan) {
+////        [self setControlsHidden:YES animated:YES permanent:YES];
+//
+//        firstX = [scrollView center].x;
+//        firstY = [scrollView center].y;
+//
+//        _senderViewForAnimation.hidden = (_currentPageIndex == _initalPageIndex);
+//
+//        _isdraggingPhoto = YES;
+//        [self setNeedsStatusBarAppearanceUpdate];
+//    }
+//
+//    translatedPoint = CGPointMake(firstX, firstY+translatedPoint.y);
+//    [scrollView setCenter:translatedPoint];
+//
+//    float newY = scrollView.center.y - viewHalfHeight;
+//    float newAlpha = 1 - fabsf(newY)/viewHeight; //abs(newY)/viewHeight * 1.8;
+//
+//    self.view.opaque = YES;
+//
+//    self.view.backgroundColor = [UIColor colorWithWhite:(_useWhiteBackgroundColor ? 1 : 0) alpha:newAlpha];
+//
+//    // Gesture Ended
+//    if ([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
+//        if(scrollView.center.y > viewHalfHeight+40 || scrollView.center.y < viewHalfHeight-40) // Automatic Dismiss View
+//        {
+//            if (_senderViewForAnimation && _currentPageIndex == _initalPageIndex) {
+//                [self performCloseAnimationWithScrollView:scrollView];
+//                return;
+//            }
+//
+//            CGFloat finalX = firstX, finalY;
+//
+//            CGFloat windowsHeigt = [_applicationWindow frame].size.height;
+//
+//            if(scrollView.center.y > viewHalfHeight+30) // swipe down
+//                finalY = windowsHeigt*2;
+//            else // swipe up
+//                finalY = -viewHalfHeight;
+//
+//            CGFloat animationDuration = 0.35;
+//
+//            [UIView beginAnimations:nil context:NULL];
+//            [UIView setAnimationDuration:animationDuration];
+//            [UIView setAnimationCurve:UIViewAnimationCurveEaseIn];
+//            [UIView setAnimationDelegate:self];
+//            [scrollView setCenter:CGPointMake(finalX, finalY)];
+//            self.view.backgroundColor = [UIColor colorWithWhite:0 alpha:0];
+//            [UIView commitAnimations];
+//
+//            [self performSelector:@selector(doneButtonPressed:) withObject:self afterDelay:animationDuration];
+//        }
+//        else // Continue Showing View
+//        {
+//            _isdraggingPhoto = NO;
+//            [self setNeedsStatusBarAppearanceUpdate];
+//
+//            self.view.backgroundColor = [UIColor colorWithWhite:(_useWhiteBackgroundColor ? 1 : 0) alpha:1];
+//
+//            CGFloat velocityY = (.35*[(UIPanGestureRecognizer*)sender velocityInView:self.view].y);
+//
+//            CGFloat finalX = firstX;
+//            CGFloat finalY = viewHalfHeight;
+//
+//            CGFloat animationDuration = (ABS(velocityY)*.0002)+.2;
+//
+//            [UIView beginAnimations:nil context:NULL];
+//            [UIView setAnimationDuration:animationDuration];
+//            [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
+//            [UIView setAnimationDelegate:self];
+//            [scrollView setCenter:CGPointMake(finalX, finalY)];
+//            [UIView commitAnimations];
+//        }
+//    }
+//}
 
 #pragma mark - Animation
 
@@ -361,21 +408,27 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     self.view.alpha = 0.0f;
     _pagingScrollView.alpha = 0.0f;
 
-    UIImage *imageFromView = _scaleImage ? _scaleImage : [self getImageFromView:_senderViewForAnimation];
+//    UIImage *imageFromView = _scaleImage ? _scaleImage : [self getImageFromView:_senderViewForAnimation];
+    id<IDMPhoto> photo = [self photoAtIndex:_currentPageIndex];
+    UIView *placeholderView = photo.placeholderView;
+    UIImage *imageFromView = photo.placeholderImage;
+//    UIImage *imageFromView = [self getImageFromView:placeholderView];
 
-    _senderViewOriginalFrame = [_senderViewForAnimation.superview convertRect:_senderViewForAnimation.frame toView:nil];
+//    _senderViewOriginalFrame = [fromView.superview convertRect:fromView.frame toView:nil];
+     CGRect placeholderViewViewRect = [placeholderView.superview convertRect:placeholderView.frame toView:nil];
 
     UIView *fadeView = [[UIView alloc] initWithFrame:_applicationWindow.bounds];
     fadeView.backgroundColor = [UIColor clearColor];
     [_applicationWindow addSubview:fadeView];
 
     UIImageView *resizableImageView = [[UIImageView alloc] initWithImage:imageFromView];
-    resizableImageView.frame = _senderViewOriginalFrame;
-    resizableImageView.clipsToBounds = YES;
-    resizableImageView.contentMode = _senderViewForAnimation ? _senderViewForAnimation.contentMode : UIViewContentModeScaleAspectFill;
+    resizableImageView.frame = placeholderViewViewRect;
+//    resizableImageView.clipsToBounds = YES;
+    resizableImageView.clipsToBounds = placeholderView ? placeholderView.clipsToBounds : YES;
+    resizableImageView.contentMode = placeholderView ? placeholderView.contentMode : UIViewContentModeScaleAspectFill;
     resizableImageView.backgroundColor = [UIColor clearColor];
     [_applicationWindow addSubview:resizableImageView];
-    _senderViewForAnimation.hidden = YES;
+    placeholderView.hidden = YES;
 
     void (^completion)() = ^() {
         self.view.alpha = 1.0f;
@@ -383,6 +436,8 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         resizableImageView.backgroundColor = [UIColor colorWithWhite:(_useWhiteBackgroundColor) ? 1 : 0 alpha:1];
         [fadeView removeFromSuperview];
         [resizableImageView removeFromSuperview];
+//        _pageControl.alpha = 1.0f;
+        [self toggleControls];
     };
 
     [UIView animateWithDuration:_animationDuration animations:^{
@@ -424,16 +479,26 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
     UIImageView *resizableImageView = [[UIImageView alloc] initWithImage:imageFromView];
     resizableImageView.frame = imageViewFrame;
-    resizableImageView.contentMode = _senderViewForAnimation ? _senderViewForAnimation.contentMode : UIViewContentModeScaleAspectFill;
+    
+    id<IDMPhoto> photo = [self photoAtIndex:_currentPageIndex];
+    __block UIView *placeholderView = photo.placeholderView;
+    
+//    resizableImageView.clipsToBounds = YES;
+    resizableImageView.clipsToBounds = placeholderView ? placeholderView.clipsToBounds : YES;
+//    resizableImageView.contentMode = _senderViewForAnimation ? _senderViewForAnimation.contentMode : UIViewContentModeScaleAspectFill;
+    resizableImageView.contentMode = placeholderView ? placeholderView.contentMode : UIViewContentModeScaleAspectFill;
     resizableImageView.backgroundColor = [UIColor clearColor];
-    resizableImageView.clipsToBounds = YES;
+
     [_applicationWindow addSubview:resizableImageView];
     self.view.hidden = YES;
 
     void (^completion)() = ^() {
-        _senderViewForAnimation.hidden = NO;
-        _senderViewForAnimation = nil;
-        _scaleImage = nil;
+//        _senderViewForAnimation.hidden = NO;
+//        _senderViewForAnimation = nil;
+//        _scaleImage = nil;
+        
+        placeholderView.hidden = NO;
+        placeholderView = nil;
 
         [fadeView removeFromSuperview];
         [resizableImageView removeFromSuperview];
@@ -447,18 +512,26 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         self.view.backgroundColor = [UIColor clearColor];
     } completion:nil];
 
-    CGRect senderViewOriginalFrame = _senderViewForAnimation.superview ? [_senderViewForAnimation.superview convertRect:_senderViewForAnimation.frame toView:nil] : _senderViewOriginalFrame;
+//    CGRect senderViewOriginalFrame = _senderViewForAnimation.superview ? [_senderViewForAnimation.superview convertRect:_senderViewForAnimation.frame toView:nil] : _senderViewOriginalFrame;
+    CGRect placeholderViewRect = [placeholderView.superview convertRect:placeholderView.frame toView:nil];
 
+    if (placeholderView) {
+        
+    }
     if(_usePopAnimation)
     {
+        //        [self animateView:resizableImageView
+        //                  toFrame:senderViewOriginalFrame
+        //               completion:completion];
         [self animateView:resizableImageView
-                  toFrame:senderViewOriginalFrame
+                  toFrame:placeholderViewRect
                completion:completion];
     }
     else
     {
         [UIView animateWithDuration:_animationDuration animations:^{
-            resizableImageView.layer.frame = senderViewOriginalFrame;
+            //            resizableImageView.layer.frame = senderViewOriginalFrame;
+            resizableImageView.layer.frame = placeholderViewRect;
         } completion:^(BOOL finished) {
             completion();
         }];
@@ -499,8 +572,8 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 #pragma mark - Genaral
 
 - (void)prepareForClosePhotoBrowser {
-    // Gesture
-    [_applicationWindow removeGestureRecognizer:_panGesture];
+//    // Gesture
+//    [_applicationWindow removeGestureRecognizer:_panGesture];
 
     _autoHide = NO;
 
@@ -535,13 +608,14 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     return button;
 }
 
-- (UIImage*)getImageFromView:(UIView *)view {
-    UIGraphicsBeginImageContextWithOptions(view.bounds.size, YES, 2);
-    [view.layer renderInContext:UIGraphicsGetCurrentContext()];
-    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    return image;
-}
+//- (UIImage*)getImageFromView:(UIView *)view {
+////    UIGraphicsBeginImageContextWithOptions(view.bounds.size, YES, 2);
+//    UIGraphicsBeginImageContextWithOptions(view.bounds.size, YES, [UIScreen mainScreen].scale);
+//    [view.layer renderInContext:UIGraphicsGetCurrentContext()];
+//    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+//    UIGraphicsEndImageContext();
+//    return image;
+//}
 
 - (UIViewController *)topviewController
 {
@@ -574,91 +648,98 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     _pagingScrollView.contentSize = [self contentSizeForPagingScrollView];
 	[self.view addSubview:_pagingScrollView];
 
-    // Transition animation
-    [self performPresentAnimation];
-
     UIInterfaceOrientation currentOrientation = [UIApplication sharedApplication].statusBarOrientation;
+    
+    // PageControl
+    _pageControl = [[UIPageControl alloc] initWithFrame:[self frameForPageControlAtOrientation:currentOrientation]];
+    _pageControl.hidesForSinglePage = YES;
+    _pageControl.enabled = NO;
+    [self hideControls];
+//    _pageControl.alpha = 0;
 
-    // Toolbar
-    _toolbar = [[UIToolbar alloc] initWithFrame:[self frameForToolbarAtOrientation:currentOrientation]];
-    _toolbar.backgroundColor = [UIColor clearColor];
-    _toolbar.clipsToBounds = YES;
-    _toolbar.translucent = YES;
-    [_toolbar setBackgroundImage:[UIImage new]
-              forToolbarPosition:UIToolbarPositionAny
-                      barMetrics:UIBarMetricsDefault];
-
-    // Close Button
-    _doneButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [_doneButton setFrame:[self frameForDoneButtonAtOrientation:currentOrientation]];
-    [_doneButton setAlpha:1.0f];
-    [_doneButton addTarget:self action:@selector(doneButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
-
-    if(!_doneButtonImage) {
-        [_doneButton setTitleColor:[UIColor colorWithWhite:0.9 alpha:0.9] forState:UIControlStateNormal|UIControlStateHighlighted];
-        [_doneButton setTitle:IDMPhotoBrowserLocalizedStrings(@"Done") forState:UIControlStateNormal];
-        [_doneButton.titleLabel setFont:[UIFont boldSystemFontOfSize:11.0f]];
-        [_doneButton setBackgroundColor:[UIColor colorWithWhite:0.1 alpha:0.5]];
-        _doneButton.layer.cornerRadius = 3.0f;
-        _doneButton.layer.borderColor = [UIColor colorWithWhite:0.9 alpha:0.9].CGColor;
-        _doneButton.layer.borderWidth = 1.0f;
-    }
-    else {
-        [_doneButton setImage:_doneButtonImage forState:UIControlStateNormal];
-        _doneButton.contentMode = UIViewContentModeScaleAspectFit;
-    }
-
-    UIImage *leftButtonImage = (_leftArrowImage == nil) ?
-    [UIImage imageNamed:@"IDMPhotoBrowser.bundle/images/IDMPhotoBrowser_arrowLeft.png"]          : _leftArrowImage;
-
-    UIImage *rightButtonImage = (_rightArrowImage == nil) ?
-    [UIImage imageNamed:@"IDMPhotoBrowser.bundle/images/IDMPhotoBrowser_arrowRight.png"]         : _rightArrowImage;
-
-    UIImage *leftButtonSelectedImage = (_leftArrowSelectedImage == nil) ?
-    [UIImage imageNamed:@"IDMPhotoBrowser.bundle/images/IDMPhotoBrowser_arrowLeftSelected.png"]  : _leftArrowSelectedImage;
-
-    UIImage *rightButtonSelectedImage = (_rightArrowSelectedImage == nil) ?
-    [UIImage imageNamed:@"IDMPhotoBrowser.bundle/images/IDMPhotoBrowser_arrowRightSelected.png"] : _rightArrowSelectedImage;
-
-    // Arrows
-    _previousButton = [[UIBarButtonItem alloc] initWithCustomView:[self customToolbarButtonImage:leftButtonImage
-                                                                                   imageSelected:leftButtonSelectedImage
-                                                                                          action:@selector(gotoPreviousPage)]];
-
-    _nextButton = [[UIBarButtonItem alloc] initWithCustomView:[self customToolbarButtonImage:rightButtonImage
-                                                                               imageSelected:rightButtonSelectedImage
-                                                                                      action:@selector(gotoNextPage)]];
-
-    // Counter Label
-    _counterLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 95, 40)];
-    _counterLabel.textAlignment = NSTextAlignmentCenter;
-    _counterLabel.backgroundColor = [UIColor clearColor];
-    _counterLabel.font = [UIFont fontWithName:@"Helvetica" size:17];
-
-    if(_useWhiteBackgroundColor == NO) {
-        _counterLabel.textColor = [UIColor whiteColor];
-        _counterLabel.shadowColor = [UIColor darkTextColor];
-        _counterLabel.shadowOffset = CGSizeMake(0, 1);
-    }
-    else {
-        _counterLabel.textColor = [UIColor blackColor];
-    }
-
-    // Counter Button
-    _counterButton = [[UIBarButtonItem alloc] initWithCustomView:_counterLabel];
+//    // Toolbar
+//    _toolbar = [[UIToolbar alloc] initWithFrame:[self frameForToolbarAtOrientation:currentOrientation]];
+//    _toolbar.backgroundColor = [UIColor clearColor];
+//    _toolbar.clipsToBounds = YES;
+//    _toolbar.translucent = YES;
+//    [_toolbar setBackgroundImage:[UIImage new]
+//              forToolbarPosition:UIToolbarPositionAny
+//                      barMetrics:UIBarMetricsDefault];
+//
+//    // Close Button
+//    _doneButton = [UIButton buttonWithType:UIButtonTypeCustom];
+//    [_doneButton setFrame:[self frameForDoneButtonAtOrientation:currentOrientation]];
+//    [_doneButton setAlpha:1.0f];
+//    [_doneButton addTarget:self action:@selector(doneButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+//
+//    if(!_doneButtonImage) {
+//        [_doneButton setTitleColor:[UIColor colorWithWhite:0.9 alpha:0.9] forState:UIControlStateNormal|UIControlStateHighlighted];
+//        [_doneButton setTitle:IDMPhotoBrowserLocalizedStrings(@"Done") forState:UIControlStateNormal];
+//        [_doneButton.titleLabel setFont:[UIFont boldSystemFontOfSize:11.0f]];
+//        [_doneButton setBackgroundColor:[UIColor colorWithWhite:0.1 alpha:0.5]];
+//        _doneButton.layer.cornerRadius = 3.0f;
+//        _doneButton.layer.borderColor = [UIColor colorWithWhite:0.9 alpha:0.9].CGColor;
+//        _doneButton.layer.borderWidth = 1.0f;
+//    }
+//    else {
+//        [_doneButton setImage:_doneButtonImage forState:UIControlStateNormal];
+//        _doneButton.contentMode = UIViewContentModeScaleAspectFit;
+//    }
+//
+//    UIImage *leftButtonImage = (_leftArrowImage == nil) ?
+//    [UIImage imageNamed:@"IDMPhotoBrowser.bundle/images/IDMPhotoBrowser_arrowLeft.png"]          : _leftArrowImage;
+//
+//    UIImage *rightButtonImage = (_rightArrowImage == nil) ?
+//    [UIImage imageNamed:@"IDMPhotoBrowser.bundle/images/IDMPhotoBrowser_arrowRight.png"]         : _rightArrowImage;
+//
+//    UIImage *leftButtonSelectedImage = (_leftArrowSelectedImage == nil) ?
+//    [UIImage imageNamed:@"IDMPhotoBrowser.bundle/images/IDMPhotoBrowser_arrowLeftSelected.png"]  : _leftArrowSelectedImage;
+//
+//    UIImage *rightButtonSelectedImage = (_rightArrowSelectedImage == nil) ?
+//    [UIImage imageNamed:@"IDMPhotoBrowser.bundle/images/IDMPhotoBrowser_arrowRightSelected.png"] : _rightArrowSelectedImage;
+//
+//    // Arrows
+//    _previousButton = [[UIBarButtonItem alloc] initWithCustomView:[self customToolbarButtonImage:leftButtonImage
+//                                                                                   imageSelected:leftButtonSelectedImage
+//                                                                                          action:@selector(gotoPreviousPage)]];
+//
+//    _nextButton = [[UIBarButtonItem alloc] initWithCustomView:[self customToolbarButtonImage:rightButtonImage
+//                                                                               imageSelected:rightButtonSelectedImage
+//                                                                                      action:@selector(gotoNextPage)]];
+//
+//    // Counter Label
+//    _counterLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 95, 40)];
+//    _counterLabel.textAlignment = NSTextAlignmentCenter;
+//    _counterLabel.backgroundColor = [UIColor clearColor];
+//    _counterLabel.font = [UIFont fontWithName:@"Helvetica" size:17];
+//
+//    if(_useWhiteBackgroundColor == NO) {
+//        _counterLabel.textColor = [UIColor whiteColor];
+//        _counterLabel.shadowColor = [UIColor darkTextColor];
+//        _counterLabel.shadowOffset = CGSizeMake(0, 1);
+//    }
+//    else {
+//        _counterLabel.textColor = [UIColor blackColor];
+//    }
+//
+//    // Counter Button
+//    _counterButton = [[UIBarButtonItem alloc] initWithCustomView:_counterLabel];
 
     // Action Button
-    _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction
-                                                                  target:self
-                                                                  action:@selector(actionButtonPressed:)];
+//    _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction
+//                                                                  target:self
+//                                                                  action:@selector(actionButtonPressed:)];
 
-    // Gesture
-    _panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGestureRecognized:)];
-    [_panGesture setMinimumNumberOfTouches:1];
-    [_panGesture setMaximumNumberOfTouches:1];
+//    // Gesture
+//    _panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGestureRecognized:)];
+//    [_panGesture setMinimumNumberOfTouches:1];
+//    [_panGesture setMaximumNumberOfTouches:1];
 
     // Update
     //[self reloadData];
+    
+    // Transition animation
+    [self performPresentAnimation];
 
 	// Super
     [super viewDidLoad];
@@ -675,7 +756,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     _statusBarOriginallyHidden = [UIApplication sharedApplication].statusBarHidden;
 
     // Update UI
-	[self hideControlsAfterDelay];
+//	[self hideControlsAfterDelay];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -689,10 +770,12 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     _pagingScrollView = nil;
     _visiblePages = nil;
     _recycledPages = nil;
-    _toolbar = nil;
-    _doneButton = nil;
-    _previousButton = nil;
-    _nextButton = nil;
+    
+    _pageControl = nil;
+//    _toolbar = nil;
+//    _doneButton = nil;
+//    _previousButton = nil;
+//    _nextButton = nil;
 
     [super viewDidUnload];
 }
@@ -732,12 +815,14 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 	_performingLayout = YES;
 
     UIInterfaceOrientation currentOrientation = [UIApplication sharedApplication].statusBarOrientation;
+    
+    _pageControl.frame = [self frameForPageControlAtOrientation:currentOrientation];
 
-    // Toolbar
-    _toolbar.frame = [self frameForToolbarAtOrientation:currentOrientation];
-
-    // Done button
-    _doneButton.frame = [self frameForDoneButtonAtOrientation:currentOrientation];
+//    // Toolbar
+//    _toolbar.frame = [self frameForToolbarAtOrientation:currentOrientation];
+//
+//    // Done button
+//    _doneButton.frame = [self frameForDoneButtonAtOrientation:currentOrientation];
 
 
     // Remember index
@@ -780,56 +865,64 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 	// Setup pages
     [_visiblePages removeAllObjects];
     [_recycledPages removeAllObjects];
-
-    // Toolbar
-    if (_displayToolbar) {
-        [self.view addSubview:_toolbar];
+    
+    // PageControl
+    if (numberOfPhotos > 1) {
+        [self.view addSubview:_pageControl];
     } else {
-        [_toolbar removeFromSuperview];
+        [_pageControl removeFromSuperview];
     }
+    [self updatePageControl];
 
-    // Close button
-    if(_displayDoneButton && !self.navigationController.navigationBar)
-        [self.view addSubview:_doneButton];
+//    // Toolbar
+//    if (_displayToolbar) {
+//        [self.view addSubview:_toolbar];
+//    } else {
+//        [_toolbar removeFromSuperview];
+//    }
 
-    // Toolbar items & navigation
-    UIBarButtonItem *fixedLeftSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace
-                                                                                    target:self action:nil];
-    fixedLeftSpace.width = 32; // To balance action button
-    UIBarButtonItem *flexSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
-                                                                               target:self action:nil];
-    NSMutableArray *items = [NSMutableArray new];
+//    // Close button
+//    if(_displayDoneButton && !self.navigationController.navigationBar)
+//        [self.view addSubview:_doneButton];
 
-    if (_displayActionButton)
-        [items addObject:fixedLeftSpace];
-    [items addObject:flexSpace];
-
-    if (numberOfPhotos > 1 && _displayArrowButton)
-        [items addObject:_previousButton];
-
-    if(_displayCounterLabel) {
-        [items addObject:flexSpace];
-        [items addObject:_counterButton];
-    }
-
-    [items addObject:flexSpace];
-    if (numberOfPhotos > 1 && _displayArrowButton)
-        [items addObject:_nextButton];
-    [items addObject:flexSpace];
-
-    if(_displayActionButton)
-        [items addObject:_actionButton];
-
-    [_toolbar setItems:items];
-	[self updateToolbar];
+//    // Toolbar items & navigation
+//    UIBarButtonItem *fixedLeftSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace
+//                                                                                    target:self action:nil];
+//    fixedLeftSpace.width = 32; // To balance action button
+//    UIBarButtonItem *flexSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
+//                                                                               target:self action:nil];
+//    NSMutableArray *items = [NSMutableArray new];
+//
+//    if (_displayActionButton)
+//        [items addObject:fixedLeftSpace];
+//    [items addObject:flexSpace];
+//
+//    if (numberOfPhotos > 1 && _displayArrowButton)
+//        [items addObject:_previousButton];
+//
+//    if(_displayCounterLabel) {
+//        [items addObject:flexSpace];
+//        [items addObject:_counterButton];
+//    }
+//
+//    [items addObject:flexSpace];
+//    if (numberOfPhotos > 1 && _displayArrowButton)
+//        [items addObject:_nextButton];
+//    [items addObject:flexSpace];
+//
+//    if(_displayActionButton)
+//        [items addObject:_actionButton];
+//
+//    [_toolbar setItems:items];
+//	[self updateToolbar];
 
     // Content offset
 	_pagingScrollView.contentOffset = [self contentOffsetForPageAtIndex:_currentPageIndex];
     [self tilePages];
     _performingLayout = NO;
 
-	if(! _disableVerticalSwipe)
-		[self.view addGestureRecognizer:_panGesture];
+//	if(! _disableVerticalSwipe)
+//		[self.view addGestureRecognizer:_panGesture];
 }
 
 #pragma mark - Data
@@ -864,6 +957,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         }
     }
     captionView.alpha = [self areControlsHidden] ? 0 : 1; // Initial alpha
+//    captionView.alpha = 0; // Initial alpha
 
     return captionView;
 }
@@ -961,7 +1055,8 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 		if (![self isDisplayingPageForIndex:index]) {
             // Add new page
 			IDMZoomingScrollView *page;
-            page = [[IDMZoomingScrollView alloc] initWithPhotoBrowser:self];
+//            page = [[IDMZoomingScrollView alloc] initWithPhotoBrowser:self];
+            page = [[IDMZoomingScrollView alloc] initWithPhotoDelegate:self];
             page.backgroundColor = [UIColor clearColor];
             page.opaque = YES;
 
@@ -1077,29 +1172,39 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     return UIInterfaceOrientationIsLandscape(orientation);
 }
 
-- (CGRect)frameForToolbarAtOrientation:(UIInterfaceOrientation)orientation {
+- (CGRect)frameForPageControlAtOrientation:(UIInterfaceOrientation)orientation {
     CGFloat height = 44;
-
+    
     if ([self isLandscape:orientation])
         height = 32;
-
+    
     return CGRectMake(0, self.view.bounds.size.height - height, self.view.bounds.size.width, height);
 }
 
-- (CGRect)frameForDoneButtonAtOrientation:(UIInterfaceOrientation)orientation {
-    CGRect screenBound = self.view.bounds;
-    CGFloat screenWidth = screenBound.size.width;
-
-    // if ([self isLandscape:orientation]) screenWidth = screenBound.size.height;
-
-    return CGRectMake(screenWidth - 75, 30, 55, 26);
-}
+//- (CGRect)frameForToolbarAtOrientation:(UIInterfaceOrientation)orientation {
+//    CGFloat height = 44;
+//
+//    if ([self isLandscape:orientation])
+//        height = 32;
+//
+//    return CGRectMake(0, self.view.bounds.size.height - height, self.view.bounds.size.width, height);
+//}
+//
+//- (CGRect)frameForDoneButtonAtOrientation:(UIInterfaceOrientation)orientation {
+//    CGRect screenBound = self.view.bounds;
+//    CGFloat screenWidth = screenBound.size.width;
+//
+//    // if ([self isLandscape:orientation]) screenWidth = screenBound.size.height;
+//
+//    return CGRectMake(screenWidth - 75, 30, 55, 26);
+//}
 
 - (CGRect)frameForCaptionView:(IDMCaptionView *)captionView atIndex:(NSUInteger)index {
     CGRect pageFrame = [self frameForPageAtIndex:index];
 
     CGSize captionSize = [captionView sizeThatFits:CGSizeMake(pageFrame.size.width, 0)];
-    CGRect captionFrame = CGRectMake(pageFrame.origin.x, pageFrame.size.height - captionSize.height - (_toolbar.superview?_toolbar.frame.size.height:0), pageFrame.size.width, captionSize.height);
+//    CGRect captionFrame = CGRectMake(pageFrame.origin.x, pageFrame.size.height - captionSize.height - (_toolbar.superview?_toolbar.frame.size.height:0), pageFrame.size.width, captionSize.height);
+    CGRect captionFrame = CGRectMake(pageFrame.origin.x, pageFrame.size.height - captionSize.height - (_pageControl.superview?_pageControl.frame.size.height:0), pageFrame.size.width, captionSize.height);
 
     return captionFrame;
 }
@@ -1123,35 +1228,43 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     if (_currentPageIndex != previousCurrentPage) {
         [self didStartViewingPageAtIndex:index];
 
-        if(_arrowButtonsChangePhotosAnimated) [self updateToolbar];
+//        if(_arrowButtonsChangePhotosAnimated) [self updateToolbar];
+        if(_arrowButtonsChangePhotosAnimated) [self updatePageControl];
     }
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
 	// Hide controls when dragging begins
-	[self setControlsHidden:YES animated:YES permanent:NO];
+//	[self setControlsHidden:YES animated:YES permanent:NO];
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
 	// Update toolbar when page changes
-	if(! _arrowButtonsChangePhotosAnimated) [self updateToolbar];
+//	if(! _arrowButtonsChangePhotosAnimated) [self updateToolbar];
+    if(! _arrowButtonsChangePhotosAnimated) [self updatePageControl];
 }
 
-#pragma mark - Toolbar
-
-- (void)updateToolbar {
-    // Counter
-	if ([self numberOfPhotos] > 1) {
-		_counterLabel.text = [NSString stringWithFormat:@"%lu %@ %lu", (unsigned long)(_currentPageIndex+1), IDMPhotoBrowserLocalizedStrings(@"of"), (unsigned long)[self numberOfPhotos]];
-	} else {
-		_counterLabel.text = nil;
-	}
-
-	// Buttons
-	_previousButton.enabled = (_currentPageIndex > 0);
-	_nextButton.enabled = (_currentPageIndex < [self numberOfPhotos]-1);
+#pragma mark - PageControl
+- (void)updatePageControl {
+    _pageControl.currentPage = _currentPageIndex;
+    _pageControl.numberOfPages = [self numberOfPhotos];
 }
 
+//#pragma mark - Toolbar
+//
+//- (void)updateToolbar {
+//    // Counter
+//	if ([self numberOfPhotos] > 1) {
+//		_counterLabel.text = [NSString stringWithFormat:@"%lu %@ %lu", (unsigned long)(_currentPageIndex+1), IDMPhotoBrowserLocalizedStrings(@"of"), (unsigned long)[self numberOfPhotos]];
+//	} else {
+//		_counterLabel.text = nil;
+//	}
+//
+//	// Buttons
+//	_previousButton.enabled = (_currentPageIndex > 0);
+//	_nextButton.enabled = (_currentPageIndex < [self numberOfPhotos]-1);
+//}
+//
 - (void)jumpToPageAtIndex:(NSUInteger)index {
     // Change page
 	if (index < [self numberOfPhotos]) {
@@ -1164,12 +1277,13 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         else
         {
             _pagingScrollView.contentOffset = CGPointMake(pageFrame.origin.x - PADDING, 0);
-            [self updateToolbar];
+//            [self updateToolbar];
+            [self updatePageControl];
         }
 	}
 
 	// Update timer to give more time
-	[self hideControlsAfterDelay];
+//	[self hideControlsAfterDelay];
 }
 
 - (void)gotoPreviousPage { [self jumpToPageAtIndex:_currentPageIndex-1]; }
@@ -1180,7 +1294,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 // If permanent then we don't set timers to hide again
 - (void)setControlsHidden:(BOOL)hidden animated:(BOOL)animated permanent:(BOOL)permanent {
     // Cancel any timers
-    [self cancelControlHiding];
+//    [self cancelControlHiding];
 
     // Captions
     NSMutableSet *captionViews = [[NSMutableSet alloc] initWithCapacity:_visiblePages.count];
@@ -1189,42 +1303,46 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     }
 
     // Hide/show bars
-    [UIView animateWithDuration:(animated ? 0.1 : 0) animations:^(void) {
+    [UIView animateWithDuration:(animated ? _animationDuration : 0) animations:^(void) {
         CGFloat alpha = hidden ? 0 : 1;
         [self.navigationController.navigationBar setAlpha:alpha];
-        [_toolbar setAlpha:alpha];
-        [_doneButton setAlpha:alpha];
+//        [_toolbar setAlpha:alpha];
+//        [_doneButton setAlpha:alpha];
+        [_pageControl setAlpha:alpha];
         for (UIView *v in captionViews) v.alpha = alpha;
     } completion:^(BOOL finished) {}];
 
 	// Control hiding timer
 	// Will cancel existing timer but only begin hiding if they are visible
-	if (!permanent) [self hideControlsAfterDelay];
+//	if (!permanent) [self hideControlsAfterDelay];
 
     [self setNeedsStatusBarAppearanceUpdate];
 }
 
-- (void)cancelControlHiding {
-	// If a timer exists then cancel and release
-	if (_controlVisibilityTimer) {
-		[_controlVisibilityTimer invalidate];
-		_controlVisibilityTimer = nil;
-	}
+//- (void)cancelControlHiding {
+//	// If a timer exists then cancel and release
+//	if (_controlVisibilityTimer) {
+//		[_controlVisibilityTimer invalidate];
+//		_controlVisibilityTimer = nil;
+//	}
+//}
+//
+//// Enable/disable control visiblity timer
+//- (void)hideControlsAfterDelay {
+//	// return;
+//
+//    if (![self areControlsHidden]) {
+//        [self cancelControlHiding];
+//		_controlVisibilityTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(hideControls) userInfo:nil repeats:NO];
+//	}
+//}
+
+- (BOOL)areControlsHidden {
+//    return (_toolbar.alpha == 0);
+    return (_pageControl.alpha == 0);
 }
-
-// Enable/disable control visiblity timer
-- (void)hideControlsAfterDelay {
-	// return;
-
-    if (![self areControlsHidden]) {
-        [self cancelControlHiding];
-		_controlVisibilityTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(hideControls) userInfo:nil repeats:NO];
-	}
-}
-
-- (BOOL)areControlsHidden { return (_toolbar.alpha == 0); }
-- (void)hideControls      { if(_autoHide) [self setControlsHidden:YES animated:YES permanent:NO]; }
-- (void)toggleControls    { [self setControlsHidden:![self areControlsHidden] animated:YES permanent:NO]; }
+- (void)hideControls      { if(_autoHide) [self setControlsHidden:YES animated:NO permanent:NO]; }
+- (void)toggleControls    { [self setControlsHidden:![self areControlsHidden] animated:NO permanent:NO]; }
 
 
 #pragma mark - Properties
@@ -1242,17 +1360,17 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 #pragma mark - Buttons
 
-- (void)doneButtonPressed:(id)sender {
-    if (_senderViewForAnimation && _currentPageIndex == _initalPageIndex) {
-        IDMZoomingScrollView *scrollView = [self pageDisplayedAtIndex:_currentPageIndex];
-        [self performCloseAnimationWithScrollView:scrollView];
-    }
-    else {
-        _senderViewForAnimation.hidden = NO;
-        [self prepareForClosePhotoBrowser];
-        [self dismissPhotoBrowserAnimated:YES];
-    }
-}
+//- (void)doneButtonPressed:(id)sender {
+//    if (_senderViewForAnimation && _currentPageIndex == _initalPageIndex) {
+//        IDMZoomingScrollView *scrollView = [self pageDisplayedAtIndex:_currentPageIndex];
+//        [self performCloseAnimationWithScrollView:scrollView];
+//    }
+//    else {
+//        _senderViewForAnimation.hidden = NO;
+//        [self prepareForClosePhotoBrowser];
+//        [self dismissPhotoBrowserAnimated:YES];
+//    }
+//}
 
 - (void)actionButtonPressed:(id)sender {
     id <IDMPhoto> photo = [self photoAtIndex:_currentPageIndex];
@@ -1271,14 +1389,14 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 			if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"8.0"))
 			{
 				[self.activityViewController setCompletionWithItemsHandler:^(NSString *activityType, BOOL completed, NSArray *returnedItems, NSError *activityError) {
-					[selfBlock hideControlsAfterDelay];
+//					[selfBlock hideControlsAfterDelay];
 					selfBlock.activityViewController = nil;
 				}];
 			}
 			else
 			{
 				[self.activityViewController setCompletionHandler:^(NSString *activityType, BOOL completed) {
-					[selfBlock hideControlsAfterDelay];
+//					[selfBlock hideControlsAfterDelay];
 					selfBlock.activityViewController = nil;
 				}];
 			}
@@ -1308,7 +1426,8 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
             if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
 				[_actionsSheet showInView:self.view];
             } else {
-                [_actionsSheet showFromBarButtonItem:sender animated:YES];
+//                [_actionsSheet showFromBarButtonItem:sender animated:YES];
+                [_actionsSheet showInView:self.view];
             }
         }
 
@@ -1331,7 +1450,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         }
     }
 
-    [self hideControlsAfterDelay]; // Continue as normal...
+//    [self hideControlsAfterDelay]; // Continue as normal...
 }
 
 #pragma mark - pop Animation
