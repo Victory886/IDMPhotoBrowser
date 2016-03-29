@@ -4,7 +4,7 @@ Pod::Spec.new do |s|
   s.version       =  "1.8.2"
   s.homepage      =  "https://github.com/yehuanwen/IDMPhotoBrowser"
   s.license       =  { :type => 'MIT', :file => 'LICENSE.txt' }
-  s.author        =  { "Eduardo Callado" => "eduardo_tasker@hotmail.com" }
+  s.author        =  { "yehuanwen" => "yehuanwen@126.com" }
   s.source        =  { :git => "https://github.com/yehuanwen/IDMPhotoBrowser.git", :tag => "1.8.2" }
   s.platform      =  :ios, '7.0'
   s.source_files  =  'Classes/*.{h,m}'
