@@ -2,7 +2,7 @@
 
 IDMPhotoBrowser is a new implementation based on [MWPhotoBrowser](https://github.com/mwaterfall/MWPhotoBrowser).
 
-Now: Modified like WeChat.
+Now: **Modified like WeChat**.
 
 Origin: We've added both user experience and technical features inspired by Facebook's and Tweetbot's photo browsers.
 
