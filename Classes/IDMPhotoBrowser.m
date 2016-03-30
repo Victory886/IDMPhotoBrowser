@@ -968,7 +968,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
                 id <IDMPhoto> photo = [self photoAtIndex:pageIndex-1];
                 if (![photo underlyingImage]) {
                     [photo loadUnderlyingImageAndNotify];
-                    IDMLog(@"Pre-loading image at index %i", pageIndex-1);
+                    IDMLog(@"Pre-loading image at index %@", @(pageIndex-1));
                 }
             }
             if (pageIndex < [self numberOfPhotos] - 1) {
@@ -976,7 +976,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
                 id <IDMPhoto> photo = [self photoAtIndex:pageIndex+1];
                 if (![photo underlyingImage]) {
                     [photo loadUnderlyingImageAndNotify];
-                    IDMLog(@"Pre-loading image at index %i", pageIndex+1);
+                    IDMLog(@"Pre-loading image at index %@", @(pageIndex+1));
                 }
             }
         }
@@ -1022,7 +1022,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 			[_recycledPages addObject:page];
             [page prepareForReuse];
 			[page removeFromSuperview];
-			IDMLog(@"Removed page at index %i", PAGE_INDEX(page));
+			IDMLog(@"Removed page at index %@", @(PAGE_INDEX(page)));
 		}
 	}
 	[_visiblePages minusSet:_recycledPages];
@@ -1042,7 +1042,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 			[self configurePage:page forIndex:index];
 			[_visiblePages addObject:page];
 			[_pagingScrollView addSubview:page];
-			IDMLog(@"Added page at index %i", index);
+			IDMLog(@"Added page at index %@", @(index));
 
             // Add caption
             IDMCaptionView *captionView = [self captionViewForPhotoAtIndex:index];
