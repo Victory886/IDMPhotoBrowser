@@ -33,6 +33,10 @@
 //@synthesize photoImageView = _photoImageView, photoBrowser = _photoBrowser, photo = _photo, captionView = _captionView;
 @synthesize photoImageView = _photoImageView, photo = _photo, captionView = _captionView;
 
+- (void)dealloc {
+//    IDMLog(@"%@, %@, %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd), [NSString stringWithFormat:@"%i", __LINE__]);
+}
+
 //- (id)initWithPhotoBrowser:(IDMPhotoBrowser *)browser {
 - (id)initWithPhotoDelegate:(id<IDMZoomingScrollViewDelegate>)photoDelegate {
     if ((self = [super init])) {
@@ -76,8 +80,18 @@
         _progressView.roundedCorners = NO;
 //        _progressView.trackTintColor    = browser.trackTintColor    ? self.photoBrowser.trackTintColor    : [UIColor colorWithWhite:0.2 alpha:1];
 //        _progressView.progressTintColor = browser.progressTintColor ? self.photoBrowser.progressTintColor : [UIColor colorWithWhite:1.0 alpha:1];
-        _progressView.trackTintColor    = [_photoDelegate trackTintColorForZoomingScrollView:self]    ? [_photoDelegate trackTintColorForZoomingScrollView:self] : [UIColor colorWithWhite:0.2 alpha:1];
-        _progressView.progressTintColor = [_photoDelegate progressTintColorForZoomingScrollView:self] ? [_photoDelegate progressTintColorForZoomingScrollView:self] : [UIColor colorWithWhite:1.0 alpha:1];
+        if ([_photoDelegate respondsToSelector:@selector(trackTintColorForZoomingScrollView:)]) {
+            _progressView.trackTintColor = [_photoDelegate trackTintColorForZoomingScrollView:self]    ? [_photoDelegate trackTintColorForZoomingScrollView:self] : [UIColor colorWithWhite:0.2 alpha:1];
+        } else {
+            _progressView.trackTintColor = [UIColor colorWithWhite:0.2 alpha:1];
+        }
+        
+        if ([_photoDelegate respondsToSelector:@selector(progressTintColorForZoomingScrollView:)]) {
+            _progressView.progressTintColor = [_photoDelegate progressTintColorForZoomingScrollView:self] ? [_photoDelegate progressTintColorForZoomingScrollView:self] : [UIColor colorWithWhite:1.0 alpha:1];
+        } else {
+            _progressView.progressTintColor = [UIColor colorWithWhite:1.0 alpha:1];
+        }
+        
         [self addSubview:_progressView];
         
 		// Setup
@@ -108,7 +122,9 @@
 
 #pragma mark - Long press
 - (void)longPress:(UILongPressGestureRecognizer *)gestureRecognizer {
-    [self.photoDelegate handleLongTapInZoomingScrollView:self];
+    if ([self.photoDelegate respondsToSelector:@selector(longTapInZoomingScrollView:)]) {
+        [self.photoDelegate longTapInZoomingScrollView:self];
+    }
 }
 
 #pragma mark - Image
@@ -280,30 +296,38 @@
 #pragma mark - Tap Detection
 
 - (void)handleSingleTap:(CGPoint)touchPoint {
-//	[_photoBrowser performSelector:@selector(toggleControls) withObject:nil afterDelay:0.2];
-    [self.photoDelegate handleSingleTap:touchPoint zoomingScrollView:self];
+    [self performSelector:@selector(handleSingleTapInZoomingScrollView:) withObject:self afterDelay:0.18];
+}
+
+- (void)handleSingleTapInZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView {
+    if ([self.photoDelegate respondsToSelector:@selector(singleTapInZoomingScrollView:)]) {
+        [self.photoDelegate singleTapInZoomingScrollView:zoomingScrollView];
+    }
 }
 
 - (void)handleDoubleTap:(CGPoint)touchPoint {
-    [self.photoDelegate handleDoubleTap:touchPoint zoomingScrollView:self];
-//	// Cancel any single tap handling
-//	[NSObject cancelPreviousPerformRequestsWithTarget:_photoBrowser];
-//	
-//	// Zoom
-//	if (self.zoomScale == self.maximumZoomScale) {
-//		
-//		// Zoom out
-//		[self setZoomScale:self.minimumZoomScale animated:YES];
-//		
-//	} else {
-//		
-//		// Zoom in
-//		[self zoomToRect:CGRectMake(touchPoint.x, touchPoint.y, 1, 1) animated:YES];
-//		
-//	}
-//	
+    
+	// Cancel any single tap handling
+	[NSObject cancelPreviousPerformRequestsWithTarget:self];
+	
+	// Zoom
+	if (self.zoomScale == self.maximumZoomScale) {
+		
+		// Zoom out
+		[self setZoomScale:self.minimumZoomScale animated:YES];
+		
+	} else {
+    
+		// Zoom in
+		[self zoomToRect:CGRectMake(touchPoint.x, touchPoint.y, 1, 1) animated:YES];
+		
+	}
+	
 //	// Delay controls
 //	[_photoBrowser hideControlsAfterDelay];
+    if ([self.photoDelegate respondsToSelector:@selector(doubleTapInZoomingScrollView:)]) {
+        [self.photoDelegate doubleTapInZoomingScrollView:self];
+    }
 }
 
 // Image View

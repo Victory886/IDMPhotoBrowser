@@ -84,15 +84,14 @@
     if(buttonSender.tag == 101)
     {
         photo = [IDMPhoto photoWithFilePath:[[NSBundle mainBundle] pathForResource:@"photo1l" ofType:@"jpg"]];
-        photo.caption = @"Grotto of the Madonna";
-        photo.placeholderImage = [UIImage imageNamed:@"photo1m.jpg"];
-        photo.placeholderView = buttonSender.imageView;
+//        photo.caption = @"Grotto of the Madonna";
+//        photo.placeholderImageView = buttonSender.imageView;
         [photos addObject:photo];
     }
     
     photo = [IDMPhoto photoWithFilePath:[[NSBundle mainBundle] pathForResource:@"photo3l" ofType:@"jpg"]];
     photo.caption = @"York Floods";
-    photo.placeholderView = sender;
+//    photo.placeholderImageView = sender;
     [photos addObject:photo];
     
     photo = [IDMPhoto photoWithFilePath:[[NSBundle mainBundle] pathForResource:@"photo2l" ofType:@"jpg"]];
@@ -114,7 +113,6 @@
 //    IDMPhotoBrowser *browser = [[IDMPhotoBrowser alloc] initWithPhotos:photos animatedFromView:sender]; // using initWithPhotos:animatedFromView: method to use the zoom-in animation
     IDMPhotoBrowser *browser = [[IDMPhotoBrowser alloc] initWithPhotos:photos];
     browser.delegate = self;
-    [browser setInitialPageIndex:2];
 //    browser.displayActionButton = NO;
 //    browser.displayArrowButton = YES;
 //    browser.displayCounterLabel = YES;

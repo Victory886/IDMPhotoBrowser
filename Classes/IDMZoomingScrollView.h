@@ -54,8 +54,8 @@
 - (UIColor *)trackTintColorForZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView;
 - (UIColor *)progressTintColorForZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView;
 
-- (void)handleSingleTap:(CGPoint)touchPoint zoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView;
-- (void)handleDoubleTap:(CGPoint)touchPoint zoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView;
-- (void)handleLongTapInZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView;
+- (void)singleTapInZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView;
+- (void)doubleTapInZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView;
+- (void)longTapInZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView;
 
 @end

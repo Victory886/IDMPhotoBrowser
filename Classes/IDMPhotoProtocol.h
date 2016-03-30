@@ -61,7 +61,7 @@
 // Return nil if there is no placeholder
 - (UIImage *)placeholderImage;
 
-// placeholder view
-- (UIView *)placeholderView;
+// Using placeholder image view to calculate origin frame
+- (UIImageView *)placeholderImageView;
 
 @end

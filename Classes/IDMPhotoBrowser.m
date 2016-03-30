@@ -157,32 +157,14 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     return self.progressTintColor;
 }
 
-- (void)handleSingleTap:(CGPoint)touchPoint zoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView {
-    [self performCloseAnimationWithScrollView:zoomingScrollView];
+- (void)singleTapInZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView {
+    [self doneButtonPressed:nil];
 }
 
-- (void)handleDoubleTap:(CGPoint)touchPoint zoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView {
-    // Cancel any single tap handling
-    [NSObject cancelPreviousPerformRequestsWithTarget:self];
-    
-    // Zoom
-    if (zoomingScrollView.zoomScale == zoomingScrollView.maximumZoomScale) {
-        
-        // Zoom out
-        [zoomingScrollView setZoomScale:zoomingScrollView.minimumZoomScale animated:YES];
-        
-    } else {
-        
-        // Zoom in
-        [zoomingScrollView zoomToRect:CGRectMake(touchPoint.x, touchPoint.y, 1, 1) animated:YES];
-        
-    }
-    
-    // Delay controls
-//    [self hideControlsAfterDelay];
+- (void)doubleTapInZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView {
 }
 
-- (void)handleLongTapInZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView {
+- (void)longTapInZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView {
     [self actionButtonPressed:nil];
 }
 
@@ -295,7 +277,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [self releaseAllUnderlyingPhotos];
     
-    IDMLog(@"%@, %@, %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd), [NSString stringWithFormat:@"%i", __LINE__]);
+//    IDMLog(@"%@, %@, %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd), [NSString stringWithFormat:@"%i", __LINE__]);
 }
 
 - (void)releaseAllUnderlyingPhotos {
@@ -410,12 +392,12 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 //    UIImage *imageFromView = _scaleImage ? _scaleImage : [self getImageFromView:_senderViewForAnimation];
     id<IDMPhoto> photo = [self photoAtIndex:_currentPageIndex];
-    UIView *placeholderView = photo.placeholderView;
+    UIImageView *placeholderImageView = photo.placeholderImageView;
     UIImage *imageFromView = photo.placeholderImage;
 //    UIImage *imageFromView = [self getImageFromView:placeholderView];
 
 //    _senderViewOriginalFrame = [fromView.superview convertRect:fromView.frame toView:nil];
-     CGRect placeholderViewViewRect = [placeholderView.superview convertRect:placeholderView.frame toView:nil];
+     CGRect placeholderViewViewRect = [placeholderImageView.superview convertRect:placeholderImageView.frame toView:nil];
 
     UIView *fadeView = [[UIView alloc] initWithFrame:_applicationWindow.bounds];
     fadeView.backgroundColor = [UIColor clearColor];
@@ -424,11 +406,11 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     UIImageView *resizableImageView = [[UIImageView alloc] initWithImage:imageFromView];
     resizableImageView.frame = placeholderViewViewRect;
 //    resizableImageView.clipsToBounds = YES;
-    resizableImageView.clipsToBounds = placeholderView ? placeholderView.clipsToBounds : YES;
-    resizableImageView.contentMode = placeholderView ? placeholderView.contentMode : UIViewContentModeScaleAspectFill;
+    resizableImageView.clipsToBounds = placeholderImageView ? placeholderImageView.clipsToBounds : YES;
+    resizableImageView.contentMode = placeholderImageView ? placeholderImageView.contentMode : UIViewContentModeScaleAspectFill;
     resizableImageView.backgroundColor = [UIColor clearColor];
     [_applicationWindow addSubview:resizableImageView];
-    placeholderView.hidden = YES;
+    placeholderImageView.hidden = YES;
 
     void (^completion)() = ^() {
         self.view.alpha = 1.0f;
@@ -481,12 +463,12 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     resizableImageView.frame = imageViewFrame;
     
     id<IDMPhoto> photo = [self photoAtIndex:_currentPageIndex];
-    __block UIView *placeholderView = photo.placeholderView;
+    __block UIView *placeholderImageView = photo.placeholderImageView;
     
 //    resizableImageView.clipsToBounds = YES;
-    resizableImageView.clipsToBounds = placeholderView ? placeholderView.clipsToBounds : YES;
+    resizableImageView.clipsToBounds = placeholderImageView ? placeholderImageView.clipsToBounds : YES;
 //    resizableImageView.contentMode = _senderViewForAnimation ? _senderViewForAnimation.contentMode : UIViewContentModeScaleAspectFill;
-    resizableImageView.contentMode = placeholderView ? placeholderView.contentMode : UIViewContentModeScaleAspectFill;
+    resizableImageView.contentMode = placeholderImageView ? placeholderImageView.contentMode : UIViewContentModeScaleAspectFill;
     resizableImageView.backgroundColor = [UIColor clearColor];
 
     [_applicationWindow addSubview:resizableImageView];
@@ -497,8 +479,8 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 //        _senderViewForAnimation = nil;
 //        _scaleImage = nil;
         
-        placeholderView.hidden = NO;
-        placeholderView = nil;
+        placeholderImageView.hidden = NO;
+        placeholderImageView = nil;
 
         [fadeView removeFromSuperview];
         [resizableImageView removeFromSuperview];
@@ -513,11 +495,8 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     } completion:nil];
 
 //    CGRect senderViewOriginalFrame = _senderViewForAnimation.superview ? [_senderViewForAnimation.superview convertRect:_senderViewForAnimation.frame toView:nil] : _senderViewOriginalFrame;
-    CGRect placeholderViewRect = [placeholderView.superview convertRect:placeholderView.frame toView:nil];
+    CGRect placeholderViewRect = [placeholderImageView.superview convertRect:placeholderImageView.frame toView:nil];
 
-    if (placeholderView) {
-        
-    }
     if(_usePopAnimation)
     {
         //        [self animateView:resizableImageView
@@ -1304,7 +1283,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     }
 
     // Hide/show bars
-    [UIView animateWithDuration:(animated ? _animationDuration : 0) animations:^(void) {
+    [UIView animateWithDuration:(animated ? 0.1 : 0) animations:^(void) {
         CGFloat alpha = hidden ? 0 : 1;
         [self.navigationController.navigationBar setAlpha:alpha];
 //        [_toolbar setAlpha:alpha];
@@ -1342,8 +1321,8 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 //    return (_toolbar.alpha == 0);
     return (_pageControl.alpha == 0);
 }
-- (void)hideControls      { if(_autoHide) [self setControlsHidden:YES animated:NO permanent:NO]; }
-- (void)toggleControls    { [self setControlsHidden:![self areControlsHidden] animated:NO permanent:NO]; }
+- (void)hideControls      { if(_autoHide) [self setControlsHidden:YES animated:YES permanent:NO]; }
+- (void)toggleControls    { [self setControlsHidden:![self areControlsHidden] animated:YES permanent:NO]; }
 
 
 #pragma mark - Properties
@@ -1361,7 +1340,16 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 #pragma mark - Buttons
 
-//- (void)doneButtonPressed:(id)sender {
+- (void)doneButtonPressed:(id)sender {
+    id<IDMPhoto> photo = [self photoAtIndex:_currentPageIndex];
+    UIView *placeholderImageView = photo.placeholderImageView;
+    if (placeholderImageView) {
+        IDMZoomingScrollView *scrollView = [self pageDisplayedAtIndex:_currentPageIndex];
+        [self performCloseAnimationWithScrollView:scrollView];
+    } else {
+        [self prepareForClosePhotoBrowser];
+        [self dismissPhotoBrowserAnimated:YES];
+    }
 //    if (_senderViewForAnimation && _currentPageIndex == _initalPageIndex) {
 //        IDMZoomingScrollView *scrollView = [self pageDisplayedAtIndex:_currentPageIndex];
 //        [self performCloseAnimationWithScrollView:scrollView];
@@ -1371,7 +1359,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 //        [self prepareForClosePhotoBrowser];
 //        [self dismissPhotoBrowserAnimated:YES];
 //    }
-//}
+}
 
 - (void)actionButtonPressed:(id)sender {
     id <IDMPhoto> photo = [self photoAtIndex:_currentPageIndex];

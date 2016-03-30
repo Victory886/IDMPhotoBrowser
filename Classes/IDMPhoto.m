@@ -38,6 +38,10 @@
 photoURL = _photoURL,
 caption = _caption;
 
+- (void)dealloc {
+//    IDMLog(@"%@, %@, %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd), [NSString stringWithFormat:@"%i", __LINE__]);
+}
+
 #pragma mark Class Methods
 
 + (IDMPhoto *)photoWithImage:(UIImage *)image {
@@ -119,9 +123,9 @@ caption = _caption;
 }
 
 #pragma mark - Private methods
-- (UIImage *)imageFromPlaceholderView {
-    UIGraphicsBeginImageContextWithOptions(_placeholderView.bounds.size, YES, [UIScreen mainScreen].scale);
-    [_placeholderView.layer renderInContext:UIGraphicsGetCurrentContext()];
+- (UIImage *)imageFromPlaceholderImageView {
+    UIGraphicsBeginImageContextWithOptions(_placeholderImageView.bounds.size, YES, [UIScreen mainScreen].scale);
+    [_placeholderImageView.layer renderInContext:UIGraphicsGetCurrentContext()];
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return image;
@@ -129,9 +133,25 @@ caption = _caption;
 
 #pragma mark IDMPhoto Protocol Methods
 
+//- (UIImageView *)placeholderImageView {
+//    if (!_placeholderImageView) {
+//        _placeholderImageView = ({
+//            UIImageView *imageView = [[UIImageView alloc] init];
+//            imageView.contentMode = UIViewContentModeScaleAspectFill;
+//            imageView.clipsToBounds = YES;
+//            imageView.image = _placeholderImage;
+//            imageView;
+//        });
+//    }
+//    return _placeholderImageView;
+//}
+
 - (UIImage *)placeholderImage {
     if (!_placeholderImage) {
-        return [self imageFromPlaceholderView];
+        if (!_placeholderImageView.image) {
+            return [self imageFromPlaceholderImageView];
+        }
+        return _placeholderImageView.image;
     }
     return _placeholderImage;
 }
