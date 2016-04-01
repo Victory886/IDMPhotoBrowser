@@ -375,6 +375,10 @@
     }
 }
 
+- (BOOL)loadingImageFailure {
+    return _loadingError != nil;
+}
+
 #pragma mark - Setup
 
 - (void)setMaxMinZoomScalesForCurrentBounds {
@@ -400,9 +404,11 @@
     
 	// If image is smaller than the screen then ensure we show it at
 	// min scale of 1
-	if (xScale > 1 && yScale > 1) {
-		minScale = 1.0;
-	}
+    if ([self.photo loadingInProgress] || [self loadingImageFailure]) {
+        if (xScale > 1 && yScale > 1) {
+            minScale = 1.0;
+        }
+    }
     
 	// Calculate Max
 	CGFloat maxScale = 4.0; // Allow double scale
