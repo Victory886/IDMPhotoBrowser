@@ -98,6 +98,7 @@
         } else {
             _progressView.progressTintColor = [UIColor colorWithWhite:1.0 alpha:1];
         }
+        _progressView.userInteractionEnabled = NO;
         
         [self addSubview:_progressView];
         
@@ -139,69 +140,6 @@
 
 #pragma mark - Animate image
 - (void)animateImage {
-    
-
-//    UIImage *fromImage = [self.photo placeholderImage];
-//    
-//    CGRect fromFrame = ({
-//        // Center the image as it becomes smaller than the size of the screen
-//        CGSize boundsSize = self.bounds.size;
-//        CGRect frameToCenter = [self.photo placeholderImageView].frame;
-//        
-//        // Horizontally
-//        if (frameToCenter.size.width < boundsSize.width) {
-//            frameToCenter.origin.x = floorf((boundsSize.width - frameToCenter.size.width) / 2.0);
-//        } else {
-//            frameToCenter.origin.x = 0;
-//        }
-//        
-//        // Vertically
-//        if (frameToCenter.size.height < boundsSize.height) {
-//            frameToCenter.origin.y = floorf((boundsSize.height - frameToCenter.size.height) / 2.0);
-//        } else {
-//            frameToCenter.origin.y = 0;
-//        }
-//        frameToCenter;
-//    });
-//    
-//    UIImage *toImage = _photoImageView.image;
-//    
-//    CGRect toFrame = ({
-//        // Center the image as it becomes smaller than the size of the screen
-//        CGSize boundsSize = self.bounds.size;
-//        CGRect frameToCenter = _photoImageView.frame;
-//        
-//        // Horizontally
-//        if (frameToCenter.size.width < boundsSize.width) {
-//            frameToCenter.origin.x = floorf((boundsSize.width - frameToCenter.size.width) / 2.0);
-//        } else {
-//            frameToCenter.origin.x = 0;
-//        }
-//        
-//        // Vertically
-//        if (frameToCenter.size.height < boundsSize.height) {
-//            frameToCenter.origin.y = floorf((boundsSize.height - frameToCenter.size.height) / 2.0);
-//        } else {
-//            frameToCenter.origin.y = 0;
-//        }
-//        frameToCenter;
-//    });
-//    
-//    CGFloat animateDuration;
-//    if ([self.photoDelegate respondsToSelector:@selector(animationDurationForZoomingScrollView:)]) {
-//        animateDuration = [self.photoDelegate animationDurationForZoomingScrollView:self] != 0 ? [self.photoDelegate animationDurationForZoomingScrollView:self] : 0.28;
-//    } else {
-//        animateDuration = 0.28;
-//    }
-////    self.photoImageView.image = fromImage;
-//    self.photoImageView.frame = fromFrame;
-//    [UIView animateWithDuration:animateDuration animations:^{
-//        self.photoImageView.image = toImage;
-//        self.photoImageView.layer.frame = toFrame;
-//    } completion:^(BOOL finished) {
-//    }];
-    
-//    UIImage *fromImage = [self.photo placeholderImage];
     
     CGRect fromFrame = ({
         // Center the image as it becomes smaller than the size of the screen
