@@ -25,8 +25,12 @@ static const CGFloat labelPadding = 10;
     CGRect screenBound = [[UIScreen mainScreen] bounds];
     CGFloat screenWidth = screenBound.size.width;
     
-    if ([[UIDevice currentDevice] orientation] == UIDeviceOrientationLandscapeLeft ||
-        [[UIDevice currentDevice] orientation] == UIDeviceOrientationLandscapeRight) {
+//    if ([[UIDevice currentDevice] orientation] == UIDeviceOrientationLandscapeLeft ||
+//        [[UIDevice currentDevice] orientation] == UIDeviceOrientationLandscapeRight) {
+//        screenWidth = screenBound.size.height;
+//    }
+    
+    if (UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation)) {
         screenWidth = screenBound.size.height;
     }
     

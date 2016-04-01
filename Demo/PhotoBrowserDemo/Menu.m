@@ -48,7 +48,7 @@
     UIView *tableViewFooter = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 426 * 0.9 + 40)];
 
     UIButton *buttonWithImageOnScreen1 = [UIButton buttonWithType:UIButtonTypeCustom];
-    buttonWithImageOnScreen1.frame = CGRectMake(15, 0, 640/3 * 0.9, 426/2 * 0.9);
+    buttonWithImageOnScreen1.frame = CGRectMake(15, 0, 100, 100);
     buttonWithImageOnScreen1.tag = 101;
     buttonWithImageOnScreen1.adjustsImageWhenHighlighted = NO;
     [buttonWithImageOnScreen1 setImage:[UIImage imageNamed:@"photo1m.jpg"] forState:UIControlStateNormal];
@@ -58,14 +58,24 @@
     [tableViewFooter addSubview:buttonWithImageOnScreen1];
     
     UIButton *buttonWithImageOnScreen2 = [UIButton buttonWithType:UIButtonTypeCustom];
-    buttonWithImageOnScreen2.frame = CGRectMake(15, 426/2 * 0.9 + 20, 640/2 * 0.9, 426/2 * 0.9);
+    buttonWithImageOnScreen2.frame = CGRectMake(130, 0, 100, 100);
     buttonWithImageOnScreen2.tag = 102;
     buttonWithImageOnScreen2.adjustsImageWhenHighlighted = NO;
-    [buttonWithImageOnScreen2 setImage:[UIImage imageNamed:@"photo3m.jpg"] forState:UIControlStateNormal];
-    buttonWithImageOnScreen2.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    [buttonWithImageOnScreen2 setImage:[UIImage imageNamed:@"jianyue2.jpg"] forState:UIControlStateNormal];
+    buttonWithImageOnScreen2.imageView.contentMode = UIViewContentModeScaleAspectFill;
     buttonWithImageOnScreen2.backgroundColor = [UIColor blackColor];
     [buttonWithImageOnScreen2 addTarget:self action:@selector(buttonWithImageOnScreenPressed:) forControlEvents:UIControlEventTouchUpInside];
     [tableViewFooter addSubview:buttonWithImageOnScreen2];
+    
+    UIButton *buttonWithImageOnScreen3 = [UIButton buttonWithType:UIButtonTypeCustom];
+    buttonWithImageOnScreen3.frame = CGRectMake(245, 0, 100, 100);
+    buttonWithImageOnScreen3.tag = 103;
+    buttonWithImageOnScreen3.adjustsImageWhenHighlighted = NO;
+    [buttonWithImageOnScreen3 setImage:[UIImage imageNamed:@"jianyue.jpg"] forState:UIControlStateNormal];
+    buttonWithImageOnScreen3.imageView.contentMode = UIViewContentModeScaleAspectFill;
+    buttonWithImageOnScreen3.backgroundColor = [UIColor blackColor];
+    [buttonWithImageOnScreen3 addTarget:self action:@selector(buttonWithImageOnScreenPressed:) forControlEvents:UIControlEventTouchUpInside];
+    [tableViewFooter addSubview:buttonWithImageOnScreen3];
     
     self.tableView.tableFooterView = tableViewFooter;
 }
@@ -81,34 +91,25 @@
     
     IDMPhoto *photo;
     
-    if(buttonSender.tag == 101)
-    {
-        photo = [IDMPhoto photoWithFilePath:[[NSBundle mainBundle] pathForResource:@"photo1l" ofType:@"jpg"]];
-//        photo.caption = @"Grotto of the Madonna";
-//        photo.placeholderImageView = buttonSender.imageView;
-        [photos addObject:photo];
-    }
+    UIButton *button;
     
-    photo = [IDMPhoto photoWithFilePath:[[NSBundle mainBundle] pathForResource:@"photo3l" ofType:@"jpg"]];
-    photo.caption = @"York Floods";
-//    photo.placeholderImageView = sender;
+    photo = [IDMPhoto photoWithFilePath:[[NSBundle mainBundle] pathForResource:@"photo1l" ofType:@"jpg"]];
+    photo.caption = @"Grotto of the Madonna";
+    button = [self.tableView.tableFooterView viewWithTag:101];
+    photo.placeholderImageView = button.imageView;
     [photos addObject:photo];
     
-    photo = [IDMPhoto photoWithFilePath:[[NSBundle mainBundle] pathForResource:@"photo2l" ofType:@"jpg"]];
-    photo.caption = @"The London Eye is a giant Ferris wheel situated on the banks of the River Thames, in London, England.";
+    photo = [IDMPhoto photoWithURL:[NSURL URLWithString:@"http://t.i-hairs.com/upload/work/img/900/2016-03-23/e36d5fe9-7f10-4617-999c-f3dc1716ce3e.jpg"]];
+    photo.caption = @"jianyue2";
+    button = [self.tableView.tableFooterView viewWithTag:102];
+    photo.placeholderImageView = button.imageView;
     [photos addObject:photo];
     
-    photo = [IDMPhoto photoWithFilePath:[[NSBundle mainBundle] pathForResource:@"photo4l" ofType:@"jpg"]];
-    photo.caption = @"Campervan";
+    photo = [IDMPhoto photoWithURL:[NSURL URLWithString:@"http://t.i-hairs.com/upload/work/img/900/2016-03-23/51d8ebe9-f847-451d-9e74-f4405654668e.jpg"]];
+    button = [self.tableView.tableFooterView viewWithTag:103];
+    photo.placeholderImageView = button.imageView;
     [photos addObject:photo];
-    
-    if(buttonSender.tag == 102)
-    {
-        photo = [IDMPhoto photoWithFilePath:[[NSBundle mainBundle] pathForResource:@"photo1l" ofType:@"jpg"]];
-        photo.caption = @"Grotto of the Madonna";
-        [photos addObject:photo];
-    }
-    
+
     // Create and setup browser
 //    IDMPhotoBrowser *browser = [[IDMPhotoBrowser alloc] initWithPhotos:photos animatedFromView:sender]; // using initWithPhotos:animatedFromView: method to use the zoom-in animation
     IDMPhotoBrowser *browser = [[IDMPhotoBrowser alloc] initWithPhotos:photos];
@@ -118,8 +119,10 @@
 //    browser.displayCounterLabel = YES;
 //    browser.usePopAnimation = YES;
 //    browser.scaleImage = buttonSender.currentImage;
-    if(buttonSender.tag == 102) browser.useWhiteBackgroundColor = YES;
-    
+//    if(buttonSender.tag == 102) browser.useWhiteBackgroundColor = YES;
+//    browser.trackTintColor = [UIColor yellowColor];
+//    browser.progressTintColor = [UIColor redColor];
+    [browser setInitialPageIndex:buttonSender.tag-101];
     // Show
     [self presentViewController:browser animated:YES completion:nil];
 }

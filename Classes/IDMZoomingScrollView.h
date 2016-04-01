@@ -29,6 +29,8 @@
 	IDMTapDetectingView *_tapView; // for background taps
     
     DACircularProgressView *_progressView;
+    
+    UIImageView *_loadingError;
 }
 
 @property (nonatomic, strong) IDMTapDetectingImageView *photoImageView;
@@ -43,6 +45,8 @@
 - (void)setMaxMinZoomScalesForCurrentBounds;
 - (void)prepareForReuse;
 
+- (void)animateImage;
+
 @end
 
 @protocol IDMZoomingScrollViewDelegate <NSObject>
@@ -53,6 +57,7 @@
 @optional
 - (UIColor *)trackTintColorForZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView;
 - (UIColor *)progressTintColorForZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView;
+- (CGFloat)animationDurationForZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView;
 
 - (void)singleTapInZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView;
 - (void)doubleTapInZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView;

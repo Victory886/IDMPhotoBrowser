@@ -122,6 +122,11 @@ caption = _caption;
 	return self;
 }
 
+#pragma mark - Public methods
+- (BOOL)underlyingImageExisted {
+    return _underlyingImage != nil || [[NSFileManager defaultManager] fileExistsAtPath:_photoPath] || [[SDImageCache sharedImageCache] diskImageExistsWithKey:_photoURL.absoluteString];
+}
+
 #pragma mark - Private methods
 - (UIImage *)imageFromPlaceholderImageView {
     UIGraphicsBeginImageContextWithOptions(_placeholderImageView.bounds.size, YES, [UIScreen mainScreen].scale);
@@ -147,21 +152,33 @@ caption = _caption;
 //}
 
 - (UIImage *)placeholderImage {
-    if (!_placeholderImage) {
-        if (!_placeholderImageView.image) {
-            return [self imageFromPlaceholderImageView];
-        }
-        return _placeholderImageView.image;
+    if (_placeholderImage) {
+        return _placeholderImage;
+    } else {
+//        if (_loadingInProgress) {
+//            return [self imageFromPlaceholderImageView];
+//        } else {
+//            return _placeholderImageView.image;
+//        }
+        return [self imageFromPlaceholderImageView];
     }
-    return _placeholderImage;
 }
 
 - (UIImage *)underlyingImage {
+    if ([[NSFileManager defaultManager] fileExistsAtPath:_photoPath]) {
+        return [UIImage imageWithContentsOfFile:_photoPath];
+    }
+    if ([[SDImageCache sharedImageCache] diskImageExistsWithKey:_photoURL.absoluteString]) {
+        return [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:_photoURL.absoluteString];
+    }
     return _underlyingImage;
 }
 
 - (void)loadUnderlyingImageAndNotify {
     NSAssert([[NSThread currentThread] isMainThread], @"This method must be called on the main thread.");
+    if (_loadingInProgress) {
+        return;
+    }
     _loadingInProgress = YES;
     if (self.underlyingImage) {
         // Image already loaded
@@ -179,10 +196,12 @@ caption = _caption;
                     self.progressUpdateBlock(progress);
                 }
             } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
-                if (image) {
-                    self.underlyingImage = image;
-                    [self performSelectorOnMainThread:@selector(imageLoadingComplete) withObject:nil waitUntilDone:NO];
-                }
+//                if (image) {
+//                    self.underlyingImage = image;
+//                    [self performSelectorOnMainThread:@selector(imageLoadingComplete) withObject:nil waitUntilDone:NO];
+//                }
+                self.underlyingImage = image;
+                [self performSelectorOnMainThread:@selector(imageLoadingComplete) withObject:nil waitUntilDone:NO];
             }];
 
         } else {

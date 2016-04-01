@@ -49,8 +49,8 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     UIActionSheet *_actionsSheet;
     UIActivityViewController *activityViewController;
 
-    // Control
-    NSTimer *_controlVisibilityTimer;
+//    // Control
+//    NSTimer *_controlVisibilityTimer;
 
     // Appearance
     //UIStatusBarStyle _previousStatusBarStyle;
@@ -155,6 +155,10 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 - (UIColor *)progressTintColorForZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView {
     return self.progressTintColor;
+}
+
+- (CGFloat)animationDurationForZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView {
+    return self.animationDuration;
 }
 
 - (void)singleTapInZoomingScrollView:(IDMZoomingScrollView *)zoomingScrollView {
@@ -393,7 +397,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 //    UIImage *imageFromView = _scaleImage ? _scaleImage : [self getImageFromView:_senderViewForAnimation];
     id<IDMPhoto> photo = [self photoAtIndex:_currentPageIndex];
     UIImageView *placeholderImageView = photo.placeholderImageView;
-    UIImage *imageFromView = photo.placeholderImage;
+    UIImage *imageFromView = [self imageForPhoto:photo];
 //    UIImage *imageFromView = [self getImageFromView:placeholderView];
 
 //    _senderViewOriginalFrame = [fromView.superview convertRect:fromView.frame toView:nil];
@@ -410,6 +414,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     resizableImageView.contentMode = placeholderImageView ? placeholderImageView.contentMode : UIViewContentModeScaleAspectFill;
     resizableImageView.backgroundColor = [UIColor clearColor];
     [_applicationWindow addSubview:resizableImageView];
+    
     placeholderImageView.hidden = YES;
 
     void (^completion)() = ^() {
@@ -418,6 +423,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         resizableImageView.backgroundColor = [UIColor colorWithWhite:(_useWhiteBackgroundColor) ? 1 : 0 alpha:1];
         [fadeView removeFromSuperview];
         [resizableImageView removeFromSuperview];
+        placeholderImageView.hidden = NO;
 //        _pageControl.alpha = 1.0f;
         [self toggleControls];
     };
@@ -426,7 +432,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         fadeView.backgroundColor = self.useWhiteBackgroundColor ? [UIColor whiteColor] : [UIColor blackColor];
     } completion:nil];
 
-    CGRect finalImageViewFrame = [self animationFrameForImage:imageFromView presenting:YES scrollView:nil];
+    CGRect finalImageViewFrame = [self animationFrameForImage:imageFromView presenting:YES scrollView:nil underyingImageExisted:[photo underlyingImageExisted]];
 
     if(_usePopAnimation)
     {
@@ -456,14 +462,13 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     fadeView.backgroundColor = self.useWhiteBackgroundColor ? [UIColor whiteColor] : [UIColor blackColor];
     fadeView.alpha = fadeAlpha;
     [_applicationWindow addSubview:fadeView];
-
-    CGRect imageViewFrame = [self animationFrameForImage:imageFromView presenting:NO scrollView:scrollView];
+    
+    CGRect imageViewFrame = [self animationFrameForImage:imageFromView presenting:NO scrollView:scrollView underyingImageExisted:[scrollView.photo underlyingImageExisted]];
 
     UIImageView *resizableImageView = [[UIImageView alloc] initWithImage:imageFromView];
     resizableImageView.frame = imageViewFrame;
     
-    id<IDMPhoto> photo = [self photoAtIndex:_currentPageIndex];
-    __block UIView *placeholderImageView = photo.placeholderImageView;
+    __block UIView *placeholderImageView = scrollView.photo.placeholderImageView;
     
 //    resizableImageView.clipsToBounds = YES;
     resizableImageView.clipsToBounds = placeholderImageView ? placeholderImageView.clipsToBounds : YES;
@@ -473,6 +478,8 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
     [_applicationWindow addSubview:resizableImageView];
     self.view.hidden = YES;
+    
+    placeholderImageView.hidden = YES;
 
     void (^completion)() = ^() {
 //        _senderViewForAnimation.hidden = NO;
@@ -517,7 +524,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     }
 }
 
-- (CGRect)animationFrameForImage:(UIImage *)image presenting:(BOOL)presenting scrollView:(UIScrollView *)scrollView
+- (CGRect)animationFrameForImage:(UIImage *)image presenting:(BOOL)presenting scrollView:(UIScrollView *)scrollView underyingImageExisted:(BOOL)underyingImageExisted
 {
     if (!image) {
         return CGRectZero;
@@ -531,11 +538,15 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     CGRect animationFrame = CGRectZero;
 
     CGFloat aspect = imageSize.width / imageSize.height;
-    if (maxWidth / aspect <= maxHeight) {
-        animationFrame.size = CGSizeMake(maxWidth, maxWidth / aspect);
-    }
-    else {
-        animationFrame.size = CGSizeMake(maxHeight * aspect, maxHeight);
+    if (underyingImageExisted) {
+        if (maxWidth / aspect <= maxHeight) {
+            animationFrame.size = CGSizeMake(maxWidth, maxWidth / aspect);
+        }
+        else {
+            animationFrame.size = CGSizeMake(maxHeight * aspect, maxHeight);
+        }
+    } else {
+        animationFrame.size = imageSize;
     }
 
     animationFrame.origin.x = roundf((maxWidth - animationFrame.size.width) / 2.0f);
@@ -610,6 +621,9 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 #pragma mark - View Lifecycle
 
 - (void)viewDidLoad {
+    // Super
+    [super viewDidLoad];
+    
     // View
 	self.view.backgroundColor = [UIColor colorWithWhite:(_useWhiteBackgroundColor ? 1 : 0) alpha:1];
 
@@ -715,21 +729,20 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 //    [_panGesture setMaximumNumberOfTouches:1];
 
     // Update
-    //[self reloadData];
+    [self reloadData];
     
-    // Transition animation
+//    // Transition animation
+//    [self performPresentAnimation];
+    // Present photo
     [self performPresentAnimation];
-
-	// Super
-    [super viewDidLoad];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
-    // Update
-    [self reloadData];
-
     // Super
-	[super viewWillAppear:animated];
+    [super viewWillAppear:animated];
+    
+    // Update
+//    [self reloadData];
 
     // Status Bar
     _statusBarOriginallyHidden = [UIApplication sharedApplication].statusBarHidden;
@@ -944,7 +957,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 - (UIImage *)imageForPhoto:(id<IDMPhoto>)photo {
 	if (photo) {
 		// Get image or obtain in background
-		if ([photo underlyingImage]) {
+		if ([photo underlyingImageExisted]) {
 			return [photo underlyingImage];
 		} else {
             [photo loadUnderlyingImageAndNotify];
@@ -966,7 +979,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
             if (pageIndex > 0) {
                 // Preload index - 1
                 id <IDMPhoto> photo = [self photoAtIndex:pageIndex-1];
-                if (![photo underlyingImage]) {
+                if (![photo underlyingImageExisted]) {
                     [photo loadUnderlyingImageAndNotify];
                     IDMLog(@"Pre-loading image at index %@", @(pageIndex-1));
                 }
@@ -974,7 +987,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
             if (pageIndex < [self numberOfPhotos] - 1) {
                 // Preload index + 1
                 id <IDMPhoto> photo = [self photoAtIndex:pageIndex+1];
-                if (![photo underlyingImage]) {
+                if (![photo underlyingImageExisted]) {
                     [photo loadUnderlyingImageAndNotify];
                     IDMLog(@"Pre-loading image at index %@", @(pageIndex+1));
                 }
@@ -989,13 +1002,18 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     id <IDMPhoto> photo = [notification object];
     IDMZoomingScrollView *page = [self pageDisplayingPhoto:photo];
     if (page) {
-        if ([photo underlyingImage]) {
-            // Successful load
+        if ([photo underlyingImageExisted]) {
+            // Display image
             [page displayImage];
+            // Animate image
+            [page animateImage];
+            // Load adjacent photos
             [self loadAdjacentPhotosIfNecessary:photo];
+            IDMLog(@"Success to load image");
         } else {
             // Failed to load
             [page displayImageFailure];
+            IDMLog(@"Failed to load image");
         }
     }
 }
@@ -1084,7 +1102,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     page.tag = PAGE_INDEX_TAG_OFFSET + index;
     page.photo = [self photoAtIndex:index];
 
-    __block __weak IDMPhoto *photo = (IDMPhoto*)page.photo;
+    __block __weak IDMPhoto *photo = (IDMPhoto *)page.photo;
     __weak IDMZoomingScrollView* weakPage = page;
     photo.progressUpdateBlock = ^(CGFloat progress){
         [weakPage setProgress:progress forPhoto:photo];
@@ -1364,7 +1382,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 - (void)actionButtonPressed:(id)sender {
     id <IDMPhoto> photo = [self photoAtIndex:_currentPageIndex];
 
-    if ([self numberOfPhotos] > 0 && [photo underlyingImage]) {
+    if ([self numberOfPhotos] > 0 && [photo underlyingImageExisted]) {
         if(!_actionButtonTitles)
         {
             // Activity view

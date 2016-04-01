@@ -42,7 +42,7 @@
     if ((self = [super init])) {
         // Delegate
 //        self.photoBrowser = browser;
-        self.photoDelegate = photoDelegate;
+        _photoDelegate = photoDelegate;
         
         // Long press
         _longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPress:)];
@@ -66,18 +66,25 @@
         CGFloat screenWidth = screenBound.size.width;
         CGFloat screenHeight = screenBound.size.height;
         
-        if ([[UIDevice currentDevice] orientation] == UIDeviceOrientationLandscapeLeft ||
-            [[UIDevice currentDevice] orientation] == UIDeviceOrientationLandscapeRight) {
+//        if ([[UIDevice currentDevice] orientation] == UIDeviceOrientationLandscapeLeft ||
+//            [[UIDevice currentDevice] orientation] == UIDeviceOrientationLandscapeRight) {
+//            screenWidth = screenBound.size.height;
+//            screenHeight = screenBound.size.width;
+//        }
+        
+        if (UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation)) {
             screenWidth = screenBound.size.height;
             screenHeight = screenBound.size.width;
         }
         
         // Progress view
-        _progressView = [[DACircularProgressView alloc] initWithFrame:CGRectMake((screenWidth-35.)/2., (screenHeight-35.)/2, 35.0f, 35.0f)];
+//        _progressView = [[DACircularProgressView alloc] initWithFrame:CGRectMake((screenWidth-35.)/2., (screenHeight-35.)/2, 35.0f, 35.0f)];
+        _progressView = [[DACircularProgressView alloc] initWithFrame:CGRectMake((screenWidth-40)/2., (screenHeight-40)/2, 40, 40)];
         [_progressView setProgress:0.0f];
         _progressView.tag = 101;
-        _progressView.thicknessRatio = 0.1;
-        _progressView.roundedCorners = NO;
+//        _progressView.thicknessRatio = 0.1;
+        _progressView.thicknessRatio = 0.2;
+//        _progressView.roundedCorners = NO;
 //        _progressView.trackTintColor    = browser.trackTintColor    ? self.photoBrowser.trackTintColor    : [UIColor colorWithWhite:0.2 alpha:1];
 //        _progressView.progressTintColor = browser.progressTintColor ? self.photoBrowser.progressTintColor : [UIColor colorWithWhite:1.0 alpha:1];
         if ([_photoDelegate respondsToSelector:@selector(trackTintColorForZoomingScrollView:)]) {
@@ -118,13 +125,149 @@
     self.photo = nil;
     [_captionView removeFromSuperview];
     self.captionView = nil;
+    [self hideImageFailure];
 }
 
 #pragma mark - Long press
 - (void)longPress:(UILongPressGestureRecognizer *)gestureRecognizer {
-    if ([self.photoDelegate respondsToSelector:@selector(longTapInZoomingScrollView:)]) {
-        [self.photoDelegate longTapInZoomingScrollView:self];
+    if (gestureRecognizer.state == UIGestureRecognizerStateEnded) {
+        if ([self.photoDelegate respondsToSelector:@selector(longTapInZoomingScrollView:)]) {
+            [self.photoDelegate longTapInZoomingScrollView:self];
+        }
     }
+}
+
+#pragma mark - Animate image
+- (void)animateImage {
+    
+
+//    UIImage *fromImage = [self.photo placeholderImage];
+//    
+//    CGRect fromFrame = ({
+//        // Center the image as it becomes smaller than the size of the screen
+//        CGSize boundsSize = self.bounds.size;
+//        CGRect frameToCenter = [self.photo placeholderImageView].frame;
+//        
+//        // Horizontally
+//        if (frameToCenter.size.width < boundsSize.width) {
+//            frameToCenter.origin.x = floorf((boundsSize.width - frameToCenter.size.width) / 2.0);
+//        } else {
+//            frameToCenter.origin.x = 0;
+//        }
+//        
+//        // Vertically
+//        if (frameToCenter.size.height < boundsSize.height) {
+//            frameToCenter.origin.y = floorf((boundsSize.height - frameToCenter.size.height) / 2.0);
+//        } else {
+//            frameToCenter.origin.y = 0;
+//        }
+//        frameToCenter;
+//    });
+//    
+//    UIImage *toImage = _photoImageView.image;
+//    
+//    CGRect toFrame = ({
+//        // Center the image as it becomes smaller than the size of the screen
+//        CGSize boundsSize = self.bounds.size;
+//        CGRect frameToCenter = _photoImageView.frame;
+//        
+//        // Horizontally
+//        if (frameToCenter.size.width < boundsSize.width) {
+//            frameToCenter.origin.x = floorf((boundsSize.width - frameToCenter.size.width) / 2.0);
+//        } else {
+//            frameToCenter.origin.x = 0;
+//        }
+//        
+//        // Vertically
+//        if (frameToCenter.size.height < boundsSize.height) {
+//            frameToCenter.origin.y = floorf((boundsSize.height - frameToCenter.size.height) / 2.0);
+//        } else {
+//            frameToCenter.origin.y = 0;
+//        }
+//        frameToCenter;
+//    });
+//    
+//    CGFloat animateDuration;
+//    if ([self.photoDelegate respondsToSelector:@selector(animationDurationForZoomingScrollView:)]) {
+//        animateDuration = [self.photoDelegate animationDurationForZoomingScrollView:self] != 0 ? [self.photoDelegate animationDurationForZoomingScrollView:self] : 0.28;
+//    } else {
+//        animateDuration = 0.28;
+//    }
+////    self.photoImageView.image = fromImage;
+//    self.photoImageView.frame = fromFrame;
+//    [UIView animateWithDuration:animateDuration animations:^{
+//        self.photoImageView.image = toImage;
+//        self.photoImageView.layer.frame = toFrame;
+//    } completion:^(BOOL finished) {
+//    }];
+    
+//    UIImage *fromImage = [self.photo placeholderImage];
+    
+    CGRect fromFrame = ({
+        // Center the image as it becomes smaller than the size of the screen
+        CGSize boundsSize = self.bounds.size;
+        CGRect frameToCenter = [self.photo placeholderImageView].frame;
+        
+        // Horizontally
+        if (frameToCenter.size.width < boundsSize.width) {
+            frameToCenter.origin.x = floorf((boundsSize.width - frameToCenter.size.width) / 2.0);
+        } else {
+            frameToCenter.origin.x = 0;
+        }
+        
+        // Vertically
+        if (frameToCenter.size.height < boundsSize.height) {
+            frameToCenter.origin.y = floorf((boundsSize.height - frameToCenter.size.height) / 2.0);
+        } else {
+            frameToCenter.origin.y = 0;
+        }
+        frameToCenter;
+    });
+    
+    UIImage *toImage = _photoImageView.image;
+    
+    CGRect toFrame = ({
+        // Center the image as it becomes smaller than the size of the screen
+        CGSize boundsSize = self.bounds.size;
+        CGRect frameToCenter = _photoImageView.frame;
+        
+        // Horizontally
+        if (frameToCenter.size.width < boundsSize.width) {
+            frameToCenter.origin.x = floorf((boundsSize.width - frameToCenter.size.width) / 2.0);
+        } else {
+            frameToCenter.origin.x = 0;
+        }
+        
+        // Vertically
+        if (frameToCenter.size.height < boundsSize.height) {
+            frameToCenter.origin.y = floorf((boundsSize.height - frameToCenter.size.height) / 2.0);
+        } else {
+            frameToCenter.origin.y = 0;
+        }
+        frameToCenter;
+    });
+    
+    UIImageView *resizableImageView = [[UIImageView alloc] initWithImage:toImage];
+    resizableImageView.frame = fromFrame;
+    resizableImageView.clipsToBounds = [self.photo placeholderImageView] ? [self.photo placeholderImageView].clipsToBounds : YES;
+    resizableImageView.contentMode = [self.photo placeholderImageView] ? [self.photo placeholderImageView].contentMode : UIViewContentModeScaleAspectFill;
+    resizableImageView.backgroundColor = [UIColor clearColor];
+    
+    [self addSubview:resizableImageView];
+    
+    CGFloat animateDuration;
+    if ([self.photoDelegate respondsToSelector:@selector(animationDurationForZoomingScrollView:)]) {
+        animateDuration = [self.photoDelegate animationDurationForZoomingScrollView:self] != 0 ? [self.photoDelegate animationDurationForZoomingScrollView:self] : 0.28;
+    } else {
+        animateDuration = 0.28;
+    }
+    self.photoImageView.hidden = YES;
+    [UIView animateWithDuration:animateDuration animations:^{
+        resizableImageView.layer.frame = toFrame;
+    } completion:^(BOOL finished) {
+        self.photoImageView.hidden = NO;
+        [resizableImageView removeFromSuperview];
+    }];
 }
 
 #pragma mark - Image
@@ -143,9 +286,11 @@
 //		UIImage *img = [self.photoBrowser imageForPhoto:_photo];
         UIImage *img = [self.photoDelegate imageForPhoto:_photo zoomingScrollView:self];
 		if (img) {
-            // Hide ProgressView
-            //_progressView.alpha = 0.0f;
-            [_progressView removeFromSuperview];
+            if (![_photo loadingInProgress]) {
+                // Hide ProgressView
+                _progressView.alpha = 0.0f;
+//                [_progressView removeFromSuperview];
+            }
             
             // Set image
 			_photoImageView.image = img;
@@ -166,6 +311,8 @@
 			_photoImageView.hidden = YES;
             
             _progressView.alpha = 1.0f;
+            
+            [self hideImageFailure];
 		}
         
 		[self setNeedsLayout];
@@ -184,7 +331,48 @@
 
 // Image failed so just show black!
 - (void)displayImageFailure {
-    [_progressView removeFromSuperview];
+    _progressView.alpha = 0;
+    //    [_progressView removeFromSuperview];
+    
+    if (!_loadingError) {
+        _loadingError = [[UIImageView alloc] init];
+        _loadingError.image = [UIImage imageNamed:@"IDMPhotoBrowser.bundle/images/IDMPhotoBrowser_error.png"];
+        _loadingError.userInteractionEnabled = NO;
+        _loadingError.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin |
+        UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleRightMargin;
+        [_loadingError sizeToFit];
+        [self addSubview:_loadingError];
+    }
+    CGRect frame = CGRectMake(floorf((self.bounds.size.width - _loadingError.frame.size.width) / 2.),
+                              floorf((self.bounds.size.height - _loadingError.frame.size.height) / 2.),
+                              _loadingError.frame.size.width,
+                              _loadingError.frame.size.height);
+    
+    _loadingError.frame = frame;
+    
+    CGFloat animateDuration;
+    if ([self.photoDelegate respondsToSelector:@selector(animationDurationForZoomingScrollView:)]) {
+        animateDuration = [self.photoDelegate animationDurationForZoomingScrollView:self] != 0 ? [self.photoDelegate animationDurationForZoomingScrollView:self] : 0.28;
+    } else {
+        animateDuration = 0.28;
+    }
+    _loadingError.transform = CGAffineTransformMakeScale(0, 0);
+    [UIView animateWithDuration:animateDuration delay:0 usingSpringWithDamping:1 initialSpringVelocity:6 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        _loadingError.transform = CGAffineTransformMakeScale(1, 1);
+    } completion:^(BOOL finished) {
+    }];
+//    [UIView animateWithDuration:0 animations:^{
+//        _loadingError.frame = frame;
+//    } completion:^(BOOL finished) {
+//        ;
+//    }];
+}
+
+- (void)hideImageFailure {
+    if (_loadingError) {
+        [_loadingError removeFromSuperview];
+        _loadingError = nil;
+    }
 }
 
 #pragma mark - Setup
@@ -213,7 +401,7 @@
 	// If image is smaller than the screen then ensure we show it at
 	// min scale of 1
 	if (xScale > 1 && yScale > 1) {
-		//minScale = 1.0;
+		minScale = 1.0;
 	}
     
 	// Calculate Max
@@ -244,6 +432,19 @@
 	// Update tap view frame
 	_tapView.frame = self.bounds;
     
+    // Position indicators (centre does not seem to work!)
+    if (_progressView.alpha != 0)
+        _progressView.frame = CGRectMake(floorf((self.bounds.size.width - _progressView.frame.size.width) / 2.),
+                                             floorf((self.bounds.size.height - _progressView.frame.size.height) / 2.),
+                                             _progressView.frame.size.width,
+                                             _progressView.frame.size.height);
+    
+    if (_loadingError)
+        _loadingError.frame = CGRectMake(floorf((self.bounds.size.width - _loadingError.frame.size.width) / 2.),
+                                         floorf((self.bounds.size.height - _loadingError.frame.size.height) / 2.),
+                                         _loadingError.frame.size.width,
+                                         _loadingError.frame.size.height);
+    
 	// Super
 	[super layoutSubviews];
     
@@ -266,8 +467,9 @@
 	}
     
 	// Center
-	if (!CGRectEqualToRect(_photoImageView.frame, frameToCenter))
-		_photoImageView.frame = frameToCenter;
+    if (!CGRectEqualToRect(_photoImageView.frame, frameToCenter)) {
+        _photoImageView.frame = frameToCenter;
+    }
 }
 
 #pragma mark - UIScrollViewDelegate
