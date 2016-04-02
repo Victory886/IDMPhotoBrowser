@@ -107,7 +107,7 @@
     
     photo = [IDMPhoto photoWithURL:[NSURL URLWithString:@"http://t.i-hairs.com/upload/work/img/900/2016-03-23/51d8ebe9-f847-451d-9e74-f4405654668e.jpg"]];
     button = [self.tableView.tableFooterView viewWithTag:103];
-    photo.placeholderImageView = button.imageView;
+//    photo.placeholderImageView = button.imageView;
     [photos addObject:photo];
 
     // Create and setup browser

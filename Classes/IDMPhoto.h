@@ -26,8 +26,8 @@ typedef void (^IDMProgressUpdateBlock)(CGFloat progress);
 @property (nonatomic, strong) NSURL *photoURL;
 @property (nonatomic, strong) UIImage *placeholderImage;
 @property (nonatomic, strong) UIImageView *placeholderImageView;
+@property (nonatomic, assign, readonly) CGRect placeholderFrame;
 @property (nonatomic, assign, readonly) BOOL loadingInProgress;
-@property (nonatomic, assign, readonly) BOOL underlyingImageExisted;
 
 // Class
 + (IDMPhoto *)photoWithImage:(UIImage *)image;

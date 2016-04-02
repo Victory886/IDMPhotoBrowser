@@ -193,14 +193,14 @@
     
     [self addSubview:resizableImageView];
     
-    CGFloat animateDuration;
-    if ([self.photoDelegate respondsToSelector:@selector(animationDurationForZoomingScrollView:)]) {
-        animateDuration = [self.photoDelegate animationDurationForZoomingScrollView:self] != 0 ? [self.photoDelegate animationDurationForZoomingScrollView:self] : 0.28;
-    } else {
-        animateDuration = 0.28;
-    }
+//    CGFloat animateDuration;
+//    if ([self.photoDelegate respondsToSelector:@selector(animationDurationForZoomingScrollView:)]) {
+//        animateDuration = [self.photoDelegate animationDurationForZoomingScrollView:self] != 0 ? [self.photoDelegate animationDurationForZoomingScrollView:self] : 0.28;
+//    } else {
+//        animateDuration = 0.28;
+//    }
     self.photoImageView.hidden = YES;
-    [UIView animateWithDuration:animateDuration animations:^{
+    [UIView animateWithDuration:0.5 animations:^{
         resizableImageView.layer.frame = toFrame;
     } completion:^(BOOL finished) {
         self.photoImageView.hidden = NO;

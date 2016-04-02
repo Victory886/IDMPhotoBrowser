@@ -67,7 +67,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     NSInteger _initalPageIndex;
 
     BOOL _isdraggingPhoto;
-
+    
 //    CGRect _senderViewOriginalFrame;
     //UIImage *_backgroundScreenshot;
 
@@ -397,18 +397,23 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 //    UIImage *imageFromView = _scaleImage ? _scaleImage : [self getImageFromView:_senderViewForAnimation];
     id<IDMPhoto> photo = [self photoAtIndex:_currentPageIndex];
     UIImageView *placeholderImageView = photo.placeholderImageView;
-    UIImage *imageFromView = [self imageForPhoto:photo];
+    UIImage *imageFromView;
+    if (placeholderImageView) {
+        imageFromView = [self imageForPhoto:photo];
+    } else {
+        imageFromView = [photo placeholderImage];
+    }
 //    UIImage *imageFromView = [self getImageFromView:placeholderView];
 
 //    _senderViewOriginalFrame = [fromView.superview convertRect:fromView.frame toView:nil];
-     CGRect placeholderViewViewRect = [placeholderImageView.superview convertRect:placeholderImageView.frame toView:nil];
+//     CGRect placeholderImageViewRect = [placeholderImageView.superview convertRect:placeholderImageView.frame toView:nil];
 
     UIView *fadeView = [[UIView alloc] initWithFrame:_applicationWindow.bounds];
     fadeView.backgroundColor = [UIColor clearColor];
     [_applicationWindow addSubview:fadeView];
 
     UIImageView *resizableImageView = [[UIImageView alloc] initWithImage:imageFromView];
-    resizableImageView.frame = placeholderViewViewRect;
+    resizableImageView.frame = [photo placeholderFrame];
 //    resizableImageView.clipsToBounds = YES;
     resizableImageView.clipsToBounds = placeholderImageView ? placeholderImageView.clipsToBounds : YES;
     resizableImageView.contentMode = placeholderImageView ? placeholderImageView.contentMode : UIViewContentModeScaleAspectFill;
@@ -502,7 +507,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     } completion:nil];
 
 //    CGRect senderViewOriginalFrame = _senderViewForAnimation.superview ? [_senderViewForAnimation.superview convertRect:_senderViewForAnimation.frame toView:nil] : _senderViewOriginalFrame;
-    CGRect placeholderViewRect = [placeholderImageView.superview convertRect:placeholderImageView.frame toView:nil];
+//    CGRect placeholderViewRect = [placeholderImageView.superview convertRect:placeholderImageView.frame toView:nil];
 
     if(_usePopAnimation)
     {
@@ -510,14 +515,14 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         //                  toFrame:senderViewOriginalFrame
         //               completion:completion];
         [self animateView:resizableImageView
-                  toFrame:placeholderViewRect
+                  toFrame:[scrollView.photo placeholderFrame]
                completion:completion];
     }
     else
     {
         [UIView animateWithDuration:_animationDuration animations:^{
             //            resizableImageView.layer.frame = senderViewOriginalFrame;
-            resizableImageView.layer.frame = placeholderViewRect;
+            resizableImageView.layer.frame = [scrollView.photo placeholderFrame];
         } completion:^(BOOL finished) {
             completion();
         }];
@@ -729,7 +734,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 //    [_panGesture setMaximumNumberOfTouches:1];
 
     // Update
-    [self reloadData];
+//    [self reloadData];
     
 //    // Transition animation
 //    [self performPresentAnimation];
@@ -742,7 +747,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     [super viewWillAppear:animated];
     
     // Update
-//    [self reloadData];
+    [self reloadData];
 
     // Status Bar
     _statusBarOriginallyHidden = [UIApplication sharedApplication].statusBarHidden;

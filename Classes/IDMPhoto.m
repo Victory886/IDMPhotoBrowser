@@ -20,10 +20,12 @@
     // Other
     NSString *_caption;
     BOOL _loadingInProgress;
+    CGRect _placeholderFrame;
 }
 
 // Properties
 @property (nonatomic, strong) UIImage *underlyingImage;
+@property (nonatomic, assign) CGRect placeholderFrame;
 
 // Methods
 - (void)imageLoadingComplete;
@@ -36,7 +38,7 @@
 // Properties
 @synthesize underlyingImage = _underlyingImage, 
 photoURL = _photoURL,
-caption = _caption;
+caption = _caption, loadingInProgress = _loadingInProgress, placeholderFrame = _placeholderFrame;
 
 - (void)dealloc {
 //    IDMLog(@"%@, %@, %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd), [NSString stringWithFormat:@"%i", __LINE__]);
@@ -134,6 +136,12 @@ caption = _caption;
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return image;
+}
+
+#pragma mark - Accessors
+- (void)setPlaceholderImageView:(UIImageView *)placeholderImageView {
+    _placeholderImageView = placeholderImageView;
+    _placeholderFrame = [placeholderImageView.superview convertRect:placeholderImageView.frame toView:nil];
 }
 
 #pragma mark IDMPhoto Protocol Methods

@@ -64,6 +64,9 @@
 // Using placeholder image view to calculate origin frame
 - (UIImageView *)placeholderImageView;
 
+// Placeholder frame
+- (CGRect)placeholderFrame;
+
 // Loading status
 - (BOOL)loadingInProgress;
 
