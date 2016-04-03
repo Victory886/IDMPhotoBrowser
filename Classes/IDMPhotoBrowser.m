@@ -734,11 +734,9 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 //    [_panGesture setMaximumNumberOfTouches:1];
 
     // Update
-//    [self reloadData];
+    [self reloadData];
     
 //    // Transition animation
-//    [self performPresentAnimation];
-    // Present photo
     [self performPresentAnimation];
 }
 
@@ -747,7 +745,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     [super viewWillAppear:animated];
     
     // Update
-    [self reloadData];
+//    [self reloadData];
 
     // Status Bar
     _statusBarOriginallyHidden = [UIApplication sharedApplication].statusBarHidden;
