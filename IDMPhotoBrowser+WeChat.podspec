@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name          =  "IDMPhotoBrowser+WeChat"
-  s.summary       =  "Photo Browser / Viewer inspired by Facebook's and Tweetbot's with ARC support, swipe-to-dismiss, image progress and more."
+  s.summary       =  "**Modified the effects like WeChat**Photo Browser / Viewer inspired by Facebook's and Tweetbot's with ARC support, swipe-to-dismiss, image progress and more."
   s.version       =  "1.9.7"
   s.homepage      =  "https://github.com/yehuanwen/IDMPhotoBrowser"
   s.license       =  { :type => 'MIT', :file => 'LICENSE.txt' }
